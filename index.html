@@ -1,0 +1,2137 @@
+<title>Eilat Turnaround — Cleaning Ops Console</title>
+<style>
+  :root {
+    --ground: #eaeff2; --surface: #ffffff; --surface-2: #f6f9fa; --surface-3: #eef3f5;
+    --ink: #1f313c; --ink-2: #556b79; --ink-3: #8598a5;
+    --line: #dde5ea; --line-strong: #c8d5dc;
+    --accent: #12b39c; --accent-deep: #0a8c79; --accent-soft: #e0f6f2;
+    --danger: #d84a4a; --danger-soft: #fbeaea;
+    --warn: #cf8a12; --warn-soft: #fbf1dd;
+    --ok: #2c9c68; --ok-soft: #e3f4ec;
+    --villa: #8a6bbf; --villa-soft: #f0eafa;
+    --booking: #e7edf0; --booking-ink: #6c8593;
+    --shadow: 0 1px 2px rgba(31,49,60,.06), 0 4px 14px rgba(31,49,60,.06);
+    --shadow-lg: 0 12px 40px rgba(31,49,60,.22);
+    --c-mk: #d8821a; --c-op: #6455d6; --c-yb: #cc4a83; --c-rt: #2680bf; --c-ns: #2f9367;
+    --chip-ink: #ffffff;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Cascadia Mono",
+            "Noto Sans Mono", "DejaVu Sans Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d151a; --surface: #151f26; --surface-2: #1a262e; --surface-3: #202e37;
+      --ink: #e2ecf1; --ink-2: #9bb0bd; --ink-3: #6d8392;
+      --line: #24333d; --line-strong: #33454f;
+      --accent: #2ad0b6; --accent-deep: #5fe3cd; --accent-soft: #10312d;
+      --danger: #ef6a6a; --danger-soft: #331a1a;
+      --warn: #e0a33e; --warn-soft: #33270f;
+      --ok: #48c78a; --ok-soft: #12301f;
+      --villa: #a78ad4; --villa-soft: #241d33;
+      --booking: #202d35; --booking-ink: #8ba3b1;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.28);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
+      --c-mk: #dd9540; --c-op: #8377e4; --c-yb: #d96b9c; --c-rt: #4599d4; --c-ns: #45ab80;
+      --chip-ink: #0d151a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d151a; --surface: #151f26; --surface-2: #1a262e; --surface-3: #202e37;
+    --ink: #e2ecf1; --ink-2: #9bb0bd; --ink-3: #6d8392;
+    --line: #24333d; --line-strong: #33454f;
+    --accent: #2ad0b6; --accent-deep: #5fe3cd; --accent-soft: #10312d;
+    --danger: #ef6a6a; --danger-soft: #331a1a;
+    --warn: #e0a33e; --warn-soft: #33270f;
+    --ok: #48c78a; --ok-soft: #12301f;
+    --villa: #a78ad4; --villa-soft: #241d33;
+    --booking: #202d35; --booking-ink: #8ba3b1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.28);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
+    --c-mk: #dd9540; --c-op: #8377e4; --c-yb: #d96b9c; --c-rt: #4599d4; --c-ns: #45ab80;
+    --chip-ink: #0d151a;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 14px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  /* Numbers, times and money keep their own direction inside Hebrew text. */
+  .amt, .tm, .num, .stats, .wa-bubble, .meta { unicode-bidi: isolate; }
+
+  .app { display: flex; min-height: 100vh; align-items: stretch; }
+
+  .sidebar {
+    width: 238px; flex: 0 0 238px; background: var(--surface);
+    border-inline-end: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 2px; padding: 0 0 20px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px; padding: 20px 18px 22px;
+    font-weight: 700; font-size: 16px; letter-spacing: -.01em;
+  }
+  .brand .mark {
+    width: 26px; height: 26px; flex: 0 0 26px; border-radius: 8px; background: var(--accent);
+    display: grid; place-items: center; color: var(--chip-ink); font-size: 14px;
+  }
+  .brand small { display: block; font-weight: 500; font-size: 11px; color: var(--ink-3); letter-spacing: .02em; }
+
+  .nav-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--ink-3); font-weight: 600; padding: 14px 18px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 18px;
+    border: 0; border-inline-start: 3px solid transparent; background: none; color: var(--ink-2);
+    font: inherit; font-weight: 500; text-align: start; cursor: pointer; width: 100%;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-item[aria-current="true"] {
+    background: var(--surface-2); border-inline-start-color: var(--accent);
+    color: var(--ink); font-weight: 600;
+  }
+  .nav-item .ico { width: 18px; text-align: center; opacity: .85; }
+  .nav-item .badge {
+    margin-inline-start: auto; background: var(--danger); color: #fff;
+    font-size: 11px; font-weight: 700; min-width: 19px; height: 19px;
+    padding: 0 5px; border-radius: 10px; display: grid; place-items: center;
+  }
+
+  .main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 14px 22px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .topbar h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.015em; }
+  .topbar .who {
+    margin-inline-start: auto; display: flex; align-items: center; gap: 9px;
+    color: var(--ink-2); font-size: 13px;
+  }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent-deep);
+    display: grid; place-items: center; font-weight: 700; font-size: 12px; border: 1px solid var(--line);
+  }
+
+  .locale {
+    display: flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden;
+  }
+  .locale button {
+    border: 0; background: var(--surface); color: var(--ink-3);
+    font: inherit; font-weight: 700; font-size: 12px; letter-spacing: .04em;
+    padding: 6px 11px; cursor: pointer;
+  }
+  .locale button + button { border-inline-start: 1px solid var(--line); }
+  .locale button:hover { background: var(--surface-2); color: var(--ink); }
+  .locale button[aria-pressed="true"] { background: var(--accent); color: var(--chip-ink); }
+
+  .toolbar {
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 10px 22px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+
+  .btn {
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    font: inherit; font-weight: 600; font-size: 13px;
+    padding: 7px 13px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--chip-ink); }
+  .btn-primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .btn-ghost { border-color: transparent; background: none; color: var(--ink-2); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn-danger { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  .period { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+  .period span { color: var(--ink-3); font-weight: 500; }
+
+  .stepper { display: flex; gap: 4px; }
+  .stepper button {
+    width: 30px; height: 30px; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink-2);
+    border-radius: 7px; cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .stepper button:hover { background: var(--surface-2); color: var(--ink); }
+
+  select.filter {
+    font: inherit; font-size: 13px; padding: 6px 9px; border-radius: 7px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); max-width: 215px;
+  }
+
+  .content { padding: 20px 22px 60px; display: flex; flex-direction: column; gap: 18px; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 13px 15px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 3px;
+  }
+  .tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; color: var(--ink-3); }
+  .tile .v { font-size: 26px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .tile .n { font-size: 12px; color: var(--ink-2); }
+  .tile.accent { background: var(--accent-soft); border-color: transparent; }
+  .tile.accent .k, .tile.accent .v { color: var(--accent-deep); }
+  .tile.accent .n { color: var(--accent-deep); opacity: .8; }
+  .tile.alarm { background: var(--danger-soft); border-color: transparent; }
+  .tile.alarm .k, .tile.alarm .v, .tile.alarm .n { color: var(--danger); }
+  .tile.caution { background: var(--warn-soft); border-color: transparent; }
+  .tile.caution .k, .tile.caution .v, .tile.caution .n { color: var(--warn); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .card-head {
+    padding: 13px 16px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .card-head h2 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -.005em; }
+  .card-head .sub { font-size: 12px; color: var(--ink-3); }
+  .card-head .right { margin-inline-start: auto; display: flex; gap: 8px; align-items: center; }
+
+  .month-wrap { overflow-x: auto; }
+  .month {
+    display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+    min-width: 960px; border-top: 1px solid var(--line);
+  }
+  .dow {
+    padding: 8px 10px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3);
+    background: var(--surface-2);
+    border-inline-end: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .dow:nth-child(7n) { border-inline-end: 0; }
+
+  .day {
+    min-height: 132px;
+    border-inline-end: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 6px; display: flex; flex-direction: column; gap: 4px; background: var(--surface);
+  }
+  .day:nth-child(7n) { border-inline-end: 0; }
+  .day.out { background: var(--surface-2); }
+  .day.today { background: var(--accent-soft); }
+  .day.we { background: var(--surface-2); }
+  .day.we.today { background: var(--accent-soft); }
+  .day-n {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums;
+  }
+  .day.out .day-n { color: var(--ink-3); font-weight: 500; }
+  .day.today .day-n { color: var(--accent-deep); }
+  .day-n .pill {
+    margin-inline-start: auto; font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; padding: 1px 6px; border-radius: 20px;
+    background: var(--accent); color: var(--chip-ink);
+  }
+  .day-n .add {
+    margin-inline-start: auto; border: 0; background: none; cursor: pointer; color: var(--ink-3);
+    font-size: 15px; line-height: 1; padding: 0 3px; border-radius: 4px; opacity: 0;
+  }
+  .day:hover .add { opacity: 1; }
+  .day-n .add:hover { background: var(--accent); color: var(--chip-ink); }
+  .day-n .pill + .add { margin-inline-start: 0; }
+
+  .chip {
+    border: 0; font: inherit; text-align: start; width: 100%; display: block;
+    border-radius: 6px; padding: 4px 6px; cursor: pointer;
+    background: var(--chip-bg, var(--booking)); color: var(--chip-ink); line-height: 1.28;
+  }
+  .chip:hover { filter: brightness(1.07); }
+  .chip .r1 { display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 11.5px; letter-spacing: -.005em; }
+  .chip .r1 .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip .r1 .amt { margin-inline-start: auto; font-family: var(--mono); font-size: 11px; }
+  .chip .r2 {
+    font-size: 10.5px; opacity: .94; font-family: var(--mono); letter-spacing: -.02em;
+    display: flex; gap: 5px; align-items: center;
+  }
+  .chip .r2 .who {
+    font-family: var(--sans); letter-spacing: 0; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .chip .r2 .tm { margin-inline-start: auto; flex: 0 0 auto; }
+  .chip .turn, .chip .pair {
+    font-size: 9px; font-weight: 800; background: rgba(255,255,255,.28);
+    border-radius: 3px; padding: 0 3px; letter-spacing: .03em; flex: 0 0 auto;
+  }
+  .chip .vil { font-size: 9px; font-weight: 800; opacity: .85; letter-spacing: .04em; flex: 0 0 auto; }
+  .chip.gap {
+    background: var(--danger-soft); color: var(--danger);
+    border: 1px dashed var(--danger); padding: 3px 5px;
+  }
+  .chip.gap .turn { background: rgba(216,74,74,.16); }
+  .chip.done { opacity: .58; }
+  .st {
+    width: 13px; height: 13px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 8px; font-weight: 900; background: rgba(255,255,255,.3); flex: 0 0 13px;
+  }
+  .more { font-size: 11px; font-weight: 600; color: var(--ink-3); padding: 1px 4px; }
+
+  .agenda { display: none; flex-direction: column; }
+  .agenda-day { border-bottom: 1px solid var(--line); padding: 10px 14px; }
+  .agenda-day.today { background: var(--accent-soft); }
+  .agenda-day h3 {
+    margin: 0 0 8px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3);
+  }
+  .agenda-day.today h3 { color: var(--accent-deep); }
+  .agenda-day .rows { display: flex; flex-direction: column; gap: 5px; }
+
+  .tl-wrap { overflow-x: auto; }
+  .tl { min-width: 1260px; }
+  .tl-row { display: grid; grid-template-columns: 246px 1fr; border-bottom: 1px solid var(--line); }
+  .tl-row:last-child { border-bottom: 0; }
+  .tl-head { background: var(--surface-2); position: sticky; top: 0; z-index: 3; }
+  .tl-name {
+    padding: 8px 12px; border-inline-end: 1px solid var(--line); background: var(--surface);
+    position: sticky; inset-inline-start: 0; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  }
+  .tl-head .tl-name { background: var(--surface-2); }
+  .tl-name b { font-size: 12.5px; font-weight: 700; }
+  .tl-name span { font-size: 11px; color: var(--ink-3); }
+  .tl-name .stats { font-family: var(--mono); letter-spacing: -.02em; color: var(--ink-2); }
+  .tl-days { display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); }
+  .tl-dh {
+    text-align: center; font-size: 10px; font-weight: 700; color: var(--ink-3);
+    padding: 6px 0; border-inline-end: 1px solid var(--line); font-variant-numeric: tabular-nums;
+  }
+  .tl-dh.we { background: var(--surface-3); }
+  .tl-dh.td { background: var(--accent); color: var(--chip-ink); }
+  .tl-tracks { display: flex; flex-direction: column; gap: 3px; padding: 6px 0; }
+  .tl-track {
+    display: grid; grid-template-columns: repeat(31, minmax(0, 1fr));
+    grid-auto-rows: 15px; position: relative;
+  }
+  .tl-grid {
+    position: absolute; inset: 0; display: grid;
+    grid-template-columns: repeat(31, minmax(0, 1fr)); pointer-events: none;
+  }
+  .tl-grid i { border-inline-end: 1px solid var(--line); }
+  .tl-grid i.we { background: var(--surface-3); opacity: .55; }
+  .tl-grid i.td { background: var(--accent); opacity: .12; }
+  .tl-bar {
+    grid-row: 1; height: 15px; border-radius: 8px;
+    background: var(--booking); color: var(--booking-ink);
+    font-size: 9.5px; font-weight: 700; line-height: 15px; padding: 0 6px;
+    overflow: hidden; white-space: nowrap; z-index: 1;
+    font-family: var(--mono); letter-spacing: -.02em;
+  }
+  .tl-clean {
+    grid-row: 1; height: 15px; border-radius: 4px; background: var(--chip-bg);
+    z-index: 2; border: 0; padding: 0; cursor: pointer; color: var(--chip-ink);
+    font-size: 9px; font-weight: 800; display: grid; place-items: center; letter-spacing: -.03em;
+  }
+  .tl-clean:hover { filter: brightness(1.12); }
+  .tl-clean.gap { background: var(--danger-soft); border: 1px dashed var(--danger); color: var(--danger); }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 760px; }
+  th {
+    text-align: start; font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--ink-3); font-weight: 700; padding: 9px 14px;
+    background: var(--surface-2); border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .num { text-align: end; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tr.pick { cursor: pointer; }
+  tr.pick:hover { background: var(--surface-2); }
+  tr.pick[aria-selected="true"] { background: var(--accent-soft); }
+  tfoot td { font-weight: 700; background: var(--surface-2); border-top: 2px solid var(--line-strong); border-bottom: 0; }
+
+  .who-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 9px; background: var(--chip-bg); }
+  .sub2 { display: block; font-size: 11.5px; color: var(--ink-3); font-weight: 500; }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+  }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .tag.warn { background: var(--warn-soft); color: var(--warn); }
+  .tag.bad { background: var(--danger-soft); color: var(--danger); }
+  .tag.neutral { background: var(--surface-3); color: var(--ink-2); }
+  .tag.villa { background: var(--villa-soft); color: var(--villa); }
+  .tag.apt { background: var(--accent-soft); color: var(--accent-deep); }
+
+  .feed { display: flex; flex-direction: column; }
+  .ev {
+    display: flex; gap: 13px; padding: 14px 16px;
+    border-bottom: 1px solid var(--line); border-inline-start: 3px solid var(--line-strong);
+    align-items: flex-start; flex-wrap: wrap;
+  }
+  .ev:last-child { border-bottom: 0; }
+  .ev.crit { border-inline-start-color: var(--danger); }
+  .ev.warn { border-inline-start-color: var(--warn); }
+  .ev.info { border-inline-start-color: var(--accent); }
+  .ev .body { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .ev .t { font-weight: 700; font-size: 13.5px; }
+  .ev .d { font-size: 12.5px; color: var(--ink-2); }
+  .ev .d b { color: var(--ink); font-weight: 600; }
+  .ev .meta { font-size: 11px; color: var(--ink-3); font-family: var(--mono); letter-spacing: -.02em; }
+  .ev .acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+  .backdrop {
+    position: fixed; inset: 0; background: rgba(15,30,38,.55);
+    display: grid; place-items: center; padding: 20px; z-index: 50;
+  }
+  .modal {
+    background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-lg);
+    width: min(730px, 100%); max-height: 90vh; overflow: auto; border: 1px solid var(--line);
+  }
+  .modal-head {
+    padding: 16px 18px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
+    position: sticky; top: 0; background: var(--surface); z-index: 4;
+  }
+  .modal-head .titles { flex: 1 1 220px; min-width: 0; }
+  .modal-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+  .modal-head .sub { font-size: 12.5px; color: var(--ink-3); }
+  .modal-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 16px; }
+
+  .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .kv > div { display: flex; flex-direction: column; gap: 2px; }
+  .kv .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; color: var(--ink-3); }
+  .kv .v { font-size: 13.5px; font-weight: 600; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; }
+  .fld { display: flex; flex-direction: column; gap: 4px; }
+  .fld > span {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+    font-weight: 700; color: var(--ink-3);
+  }
+  .fld input, .fld select, .fld textarea {
+    font: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); width: 100%;
+  }
+  .fld textarea { min-height: 62px; resize: vertical; }
+  .fld input:focus, .fld select:focus, .fld textarea:focus { border-color: var(--accent); outline: none; }
+  .check { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 600; }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+  .crew {
+    display: flex; flex-direction: column; gap: 10px;
+    border: 1px solid var(--line); border-radius: 9px; padding: 12px; background: var(--surface-2);
+  }
+  .crew-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+    font-weight: 700; color: var(--ink-3);
+  }
+  .crew-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 124px; gap: 9px; align-items: center; }
+  .crew-row .dot { width: 12px; height: 12px; flex: 0 0 12px; border: 1px solid var(--line-strong); }
+  .crew-row input, .crew-row select {
+    font: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); width: 100%;
+  }
+  .crew-row input { font-family: var(--mono); text-align: end; }
+  .crew-split {
+    font-size: 12px; color: var(--ink-2); font-family: var(--mono); letter-spacing: -.02em;
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  }
+  @media (max-width: 560px) {
+    .crew-row { grid-template-columns: 14px minmax(0, 1fr); }
+    .crew-row input { grid-column: 2; }
+  }
+
+  .alert { border-radius: 8px; padding: 10px 12px; font-size: 12.5px; }
+  .alert.bad { background: var(--danger-soft); color: var(--danger); }
+  .alert.warn { background: var(--warn-soft); color: var(--warn); }
+  .alert b { font-weight: 700; }
+
+  .wa {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 13px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .wa + .wa { margin-top: 10px; }
+  .wa-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+  .wa-bubble {
+    background: var(--accent-soft); border-radius: 10px; border-end-start-radius: 2px;
+    padding: 11px 13px; font-size: 12.5px; white-space: pre-wrap; color: var(--ink);
+    font-family: var(--mono); letter-spacing: -.02em; line-height: 1.55;
+  }
+  /* The cleaner's own reply buttons, drawn as she sees them. Never clickable here. */
+  .wa-btns { display: flex; gap: 7px; pointer-events: none; user-select: none; }
+  .wa-btns span {
+    flex: 1; text-align: center; background: var(--surface); border: 1px dashed var(--line-strong);
+    border-radius: 7px; padding: 6px; font-size: 12px; font-weight: 700; color: var(--ink-3);
+  }
+  .wa-btns span.chosen { background: var(--ok-soft); border-style: solid; border-color: var(--ok); color: var(--ok); }
+  .wa-cap { font-size: 11px; color: var(--ink-3); font-style: italic; }
+  .track { display: flex; flex-direction: column; gap: 6px; }
+  .track > div { display: flex; gap: 9px; align-items: center; font-size: 12px; color: var(--ink-2); }
+  .track .tm { font-family: var(--mono); color: var(--ink-3); margin-inline-start: auto; }
+  .track .mark {
+    width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 9px; font-weight: 900; background: var(--ok-soft); color: var(--ok); flex: 0 0 16px;
+  }
+  .track .mark.pending { background: var(--surface-3); color: var(--ink-3); }
+
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    padding: 10px 16px; font-size: 12px; color: var(--ink-2);
+    border-top: 1px solid var(--line); background: var(--surface-2);
+  }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; margin-inline-end: 5px; vertical-align: -1px; }
+
+  .note {
+    font-size: 12.5px; color: var(--ink-2); background: var(--surface);
+    border: 1px solid var(--line); border-inline-start: 3px solid var(--accent);
+    border-radius: 8px; padding: 11px 14px;
+  }
+  .note b { color: var(--ink); }
+
+  .toast {
+    position: fixed; inset-inline-end: 20px; bottom: 20px; z-index: 80;
+    background: var(--ink); color: var(--surface);
+    padding: 12px 16px; border-radius: 9px; font-size: 13px; font-weight: 600;
+    box-shadow: var(--shadow-lg); max-width: 360px;
+  }
+
+  @media (max-width: 1000px) {
+    .app { flex-direction: column; }
+    .sidebar {
+      width: 100%; flex: 0 0 auto; flex-direction: row; align-items: center;
+      overflow-x: auto; padding: 0 10px; border-inline-end: 0;
+      border-bottom: 1px solid var(--line); gap: 0;
+    }
+    .brand { padding: 12px 12px 12px 4px; }
+    .brand small { display: none; }
+    .nav-label { display: none; }
+    .nav-item {
+      width: auto; white-space: nowrap; border-inline-start: 0;
+      border-bottom: 3px solid transparent; padding: 14px 12px;
+    }
+    .nav-item[aria-current="true"] { border-bottom-color: var(--accent); background: none; }
+  }
+
+  @media (max-width: 720px) {
+    .content { padding: 14px 12px 50px; }
+    .topbar, .toolbar { padding: 10px 12px; }
+    .month-wrap { display: none; }
+    .agenda { display: flex; }
+    .period { font-size: 15px; }
+    .day-n .add { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div id="root"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TODAY = "2026-08-13";
+  var UNSTAFFED_FROM = "2026-08-16";   // work week starts Sunday; nothing handed out from then on
+
+  /* ================= structural data (locale-independent) ================= */
+
+  var PROPS = {
+    P1: { kind: "apt",   beds: 2, hrs: 3,   rate: 380,  crew: 1, mgr: "m1", src: ["Airbnb", "Booking"] },
+    P2: { kind: "villa", beds: 4, hrs: 5,   rate: 900,  crew: 2, mgr: "m2", src: ["Airbnb"] },
+    P3: { kind: "apt",   beds: 0, hrs: 2,   rate: 220,  crew: 1, mgr: "m3", src: ["Airbnb", "Booking"] },
+    P4: { kind: "villa", beds: 5, hrs: 6,   rate: 1200, crew: 2, mgr: "m2", src: ["Airbnb", "Booking"] },
+    P5: { kind: "apt",   beds: 1, hrs: 2.5, rate: 280,  crew: 1, mgr: "m1", src: ["Airbnb", "Booking"] },
+    P6: { kind: "villa", beds: 3, hrs: 4,   rate: 650,  crew: 1, mgr: "m2", src: ["Airbnb"] },
+    P7: { kind: "apt",   beds: 1, hrs: 2.5, rate: 250,  crew: 1, mgr: "m1", src: ["Booking"] },
+    P8: { kind: "apt",   beds: 3, hrs: 3.5, rate: 480,  crew: 1, mgr: "m3", src: ["Airbnb", "Booking"] }
+  };
+
+  var COLORS = { mk: "var(--c-mk)", op: "var(--c-op)", yb: "var(--c-yb)", rt: "var(--c-rt)", ns: "var(--c-ns)" };
+  var PHONES = {
+    mk: "+972 54 ••• 41 27", op: "+972 52 ••• 08 63", yb: "+972 50 ••• 92 14",
+    rt: "+972 53 ••• 37 80", ns: "+972 55 ••• 19 45"
+  };
+
+  var STAYS = [
+    ["P1","2026-07-30","2026-08-02","Airbnb"], ["P1","2026-08-02","2026-08-06","Airbnb"],
+    ["P1","2026-08-08","2026-08-12","Booking"],["P1","2026-08-12","2026-08-15","Airbnb"],
+    ["P1","2026-08-17","2026-08-21","Airbnb"], ["P1","2026-08-23","2026-08-28","Booking"],
+    ["P1","2026-08-29","2026-09-02","Airbnb"],
+    ["P2","2026-08-01","2026-08-05","Airbnb"], ["P2","2026-08-06","2026-08-09","Airbnb"],
+    ["P2","2026-08-11","2026-08-16","Airbnb"], ["P2","2026-08-18","2026-08-24","Airbnb"],
+    ["P2","2026-08-26","2026-08-30","Airbnb"],
+    ["P3","2026-07-29","2026-08-03","Airbnb"], ["P3","2026-08-04","2026-08-07","Airbnb"],
+    ["P3","2026-08-09","2026-08-13","Booking"],["P3","2026-08-13","2026-08-19","Airbnb"],
+    ["P3","2026-08-21","2026-08-25","Airbnb"], ["P3","2026-08-27","2026-08-31","Airbnb"],
+    ["P4","2026-08-02","2026-08-10","Airbnb"], ["P4","2026-08-12","2026-08-18","Booking"],
+    ["P4","2026-08-20","2026-08-27","Airbnb"],
+    ["P5","2026-08-01","2026-08-03","Airbnb"], ["P5","2026-08-03","2026-08-08","Airbnb"],
+    ["P5","2026-08-10","2026-08-14","Booking"],["P5","2026-08-15","2026-08-20","Airbnb"],
+    ["P5","2026-08-22","2026-08-26","Airbnb"], ["P5","2026-08-28","2026-08-31","Booking"],
+    ["P6","2026-07-31","2026-08-04","Airbnb"], ["P6","2026-08-05","2026-08-11","Airbnb"],
+    ["P6","2026-08-11","2026-08-13","Airbnb"], ["P6","2026-08-14","2026-08-17","Airbnb"],
+    ["P6","2026-08-19","2026-08-23","Airbnb"], ["P6","2026-08-25","2026-09-01","Airbnb"],
+    ["P7","2026-08-03","2026-08-06","Booking"],["P7","2026-08-07","2026-08-12","Booking"],
+    ["P7","2026-08-13","2026-08-16","Booking"],["P7","2026-08-18","2026-08-22","Booking"],
+    ["P7","2026-08-24","2026-08-29","Booking"],
+    ["P8","2026-08-02","2026-08-07","Airbnb"], ["P8","2026-08-09","2026-08-15","Airbnb"],
+    ["P8","2026-08-16","2026-08-21","Booking"],["P8","2026-08-23","2026-08-26","Airbnb"],
+    ["P8","2026-08-27","2026-09-03","Airbnb"]
+  ];
+
+  var ASSIGN = {
+    "P1|2026-08-02":["mk"], "P1|2026-08-06":["mk"], "P1|2026-08-12":["mk"], "P1|2026-08-15":["mk"],
+    "P2|2026-08-05":["yb","rt"], "P2|2026-08-09":["yb","rt"],
+    "P3|2026-08-03":["rt"], "P3|2026-08-07":["rt"], "P3|2026-08-13":["rt"],
+    "P4|2026-08-10":["yb","ns"],
+    "P5|2026-08-03":["op"], "P5|2026-08-08":["op"], "P5|2026-08-14":["op"],
+    "P6|2026-08-04":["ns"], "P6|2026-08-11":["ns"], "P6|2026-08-13":["ns"],
+    "P7|2026-08-06":["op"], "P7|2026-08-12":["rt"],
+    "P8|2026-08-07":["mk"], "P8|2026-08-15":[]
+  };
+
+  var STATUS_OVERRIDE = {
+    "P3|2026-08-13": "running", "P6|2026-08-13": "confirmed",
+    "P5|2026-08-14": "sent", "P1|2026-08-15": "confirmed"
+  };
+
+  /* ================= dictionaries ================= */
+
+  var DICT = {};
+
+  DICT.en = {
+    dir: "ltr", tag: "EN",
+    dow: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    money: function (n) { return "₪" + Number(n || 0).toLocaleString("en-US"); },
+    dateLong: function (d) {
+      return this.dow[d.getUTCDay()] + ", " + d.getUTCDate() + " " + this.months[d.getUTCMonth()] +
+        " " + d.getUTCFullYear();
+    },
+    dateShort: function (d) { return this.dow[d.getUTCDay()] + " " + d.getUTCDate() + " " + this.months[d.getUTCMonth()]; },
+    n: function (n, k) {
+      var w = { cleanings: ["cleaning", "cleanings"], properties: ["property", "properties"],
+                villas: ["villa", "villas"], apartments: ["apartment", "apartments"],
+                cleaners: ["cleaner", "cleaners"], people: ["cleaner", "cleaners"],
+                active: ["active", "active"] }[k];
+      return n + " " + (n === 1 ? w[0] : w[1]);
+    },
+    beds: function (n) { return n === 0 ? "Studio" : n + " bed"; },
+    kind: { villa: "Villa", apt: "Apartment" },
+    mgrs: { m1: "Dmitry V.", m2: "Yossi L.", m3: "Anna S." },
+    cleaners: {
+      mk: { name: "Marina K.", langs: "RU / HE",  since: "Mar 2024" },
+      op: { name: "Olga P.",   langs: "RU / EN",  since: "Nov 2023" },
+      yb: { name: "Yael B.",   langs: "HE / EN",  since: "Jun 2024" },
+      rt: { name: "Rivka T.",  langs: "HE",       since: "Jan 2025" },
+      ns: { name: "Natalia S.",langs: "RU / HE",  since: "Feb 2026" }
+    },
+    props: {
+      P1: { addr: "Tarshish 3, apt 12",   short: "Tarshish 3/12",   area: "Ir HaYamim" },
+      P2: { addr: "Retamim 8",            short: "Retamim 8",       area: "Shachamon 27" },
+      P3: { addr: "Los Angeles 6, apt 7", short: "Los Angeles 6/7", area: "Almogim" },
+      P4: { addr: "Ofarim 14",            short: "Ofarim 14",       area: "Ganim Bet" },
+      P5: { addr: "Antibes 2, apt 305",   short: "Antibes 2/305",   area: "Marina" },
+      P6: { addr: "Durban 11",            short: "Durban 11",       area: "Mitzpe Yam" },
+      P7: { addr: "HaTmarim 42, apt 9",   short: "HaTmarim 42/9",   area: "City centre" },
+      P8: { addr: "Kamen 5, apt 21",      short: "Kamen 5/21",      area: "Ir HaYamim" }
+    },
+    notes: {
+      "P3|2026-08-13": "Back-to-back — next guest arrives 15:00 sharp, do the balcony too.",
+      "P5|2026-08-14": "Guest reported a broken blind in the bedroom — photograph it before you start.",
+      "P1|2026-08-15": "Late check-out agreed until 12:00, start after that.",
+      "P8|2026-08-15": "Turnaround after a 6-night stay — deep clean, allow extra time."
+    },
+    status: {
+      done: "Done", running: "In progress", confirmed: "Confirmed",
+      sent: "Awaiting reply", assigned: "Not sent", unassigned: "No crew"
+    },
+    ui: {
+      brand: "Eilat Turnaround", brandSub: "Ops console",
+      navOps: "Operations", navRecords: "Records",
+      calendar: "Schedule", timeline: "Timeline", changes: "Changes",
+      properties: "Properties", cleaners: "Cleaners", reports: "Reports",
+      manager: "Manager", today: "Today", prevMonth: "Previous month", nextMonth: "Next month",
+      august: "August", allCleaners: "All cleaners", pairJobs: "Two-cleaner jobs",
+      unassignedOnly: "Unassigned only", allProps: "All properties",
+      villasOnly: "Villas only", aptsOnly: "Apartments only",
+      filterCleaner: "Filter by cleaner", filterType: "Filter by property type",
+      tileToday: "Today · 13 Aug", tileTodayN: "scheduled",
+      tileGaps: "Unassigned · next 7 days", tileGapsN: "check-outs with nobody booked",
+      tileGapsOk: "all covered",
+      tileWait: "Awaiting WhatsApp reply", tileWaitN: "sent, not confirmed yet",
+      tilePay: "Payroll · August", tilePayN: "across",
+      schedTitle: "Cleaning schedule", assignBtn: "+ Assign cleaning",
+      needsCleaner: "Needs a cleaner", more: "more",
+      b2b: "B2B", villaShort: "VILLA", noCrewLegend: "No crew yet",
+      legendPair: "<b>×2</b> = two cleaners, pay split",
+      legendB2B: "<b>B2B</b> = back-to-back, guest checks in the same day",
+      calNote: "Bookings arrive from the platform calendars on their own — nothing is typed in by hand. " +
+        "The grid shows <b>cleanings</b>, one per check-out, colour-coded by cleaner. A card split into two " +
+        "colours is a <b>two-cleaner job</b>. Hover a day and press <b>+</b> to schedule one, or click a red " +
+        "card to fill the gap.<br><br>This week is staffed. <b>From Sunday 16 August onward every check-out " +
+        "is still open</b> — the bookings are already in, nobody has been handed the work yet. That red " +
+        "backlog is the manager's queue for the week ahead.",
+      tlTitle: "Occupancy &amp; turnarounds", tlSub: "Property × day — the view that still works at 50+ units",
+      tlProperty: "Property",
+      tlLegendBooked: "Booked — bar labelled with the source calendar",
+      tlLegendClean: "Cleaning on the check-out day, cleaner's initials",
+      tlLegendPair: "Two-cleaner job", tlLegendGap: "Unassigned check-out",
+      tlBooked: "booked",
+      chTitle: "Changes since your last review", chSub: "Last sync 13 Aug, 09:42 · every 15 min",
+      chSync: "Sync now",
+      chNote: "The system never edits a schedule on its own. It watches the imported calendars, spots what " +
+        "moved, and hands the decision to a manager — so a cancelled stay can't quietly leave a cleaner " +
+        "standing at an occupied door.",
+      propImport: "Import calendar", propAdd: "+ Add property",
+      propNote: "Rate, standard duration and default crew size are set per property and pre-fill every new " +
+        "cleaning, so a manager only overrides them when something is unusual. <b>Calendars</b> is the list " +
+        "of imported feeds — a property with no feed will never produce a check-out on its own.",
+      clAdd: "+ Add cleaner",
+      clNote: "Cleaners have no login and no access to the schedule — WhatsApp is their only interface. On a " +
+        "two-cleaner job each person gets their own message with their own share of the pay. Deactivating " +
+        "someone stops all future messages but keeps their job history and payouts intact for the reports.",
+      period: "1 – 31 August 2026", byCleaner: "By cleaner", byProperty: "By property", exportCsv: "Export CSV",
+      jobLog: "Job log", pickRow: "Click a row above to switch",
+      thProperty: "Property", thType: "Type", thSize: "Size", thManager: "Manager",
+      thStdHours: "Std. hours", thCrew: "Crew", thRate: "Rate", thCalendars: "Calendars",
+      thAugJobs: "Aug jobs", thCoverage: "Coverage", thAssign: "Assign",
+      thCleaner: "Cleaner", thWhatsApp: "WhatsApp", thLangs: "Languages", thSince: "With us since",
+      thSolo: "Solo", thPaired: "Paired", thHours: "Hours", thPayout: "Payout", thAreas: "Areas covered",
+      thStatus: "Status", thGiveJob: "Assign job", thActive: "Active",
+      thCleanings: "Cleanings", thProperties: "Properties", thCompleted: "Completed",
+      thLabour: "Labour h", thCost: "Cost", thCleaners: "Cleaners",
+      thDate: "Date", thWindow: "Window", thTheirPay: "Their pay", thCrewCol: "Crew",
+      total: "Total", covered: "covered", open: "open", noJobs: "No cleanings in this period.",
+      solo: "solo", withWho: "with", unassigned: "unassigned",
+      totalProps: "total", villas: "villas", apartments: "apartments", activeSuffix: "· August 2026 to date",
+      shown: "shown", twoCleaner: "two-cleaner",
+      mCrew: "Crew", mNobody: "nobody yet", mManager: "Manager on site", mWindow: "Window",
+      mDuration: "Duration", mEach: "each", mJobPay: "Job pay", mStatus: "Status",
+      mNote: "Manager note", mEdit: "Edit / reassign", mAssignCrew: "Assign a crew",
+      mResend: "Resend", mCancel: "Cancel cleaning", mClose: "Close",
+      b2bWarn: "Back-to-back — guest checks in 15:00",
+      waTo: "To", waNothing: "Nothing sent yet — no crew",
+      waWillGo: "This is what will go out, to whoever you assign, the moment you save.",
+      waReplied: "She replied with the button below.",
+      waWaiting: "Waiting for her to tap one of these.",
+      waOnSave: "Sent automatically when you save the job.",
+      waAccept: "Accept", waDecline: "Can’t make it",
+      trSent: "Sent", trDelivered: "Delivered", trRead: "Read", trAccepted: "Accepted",
+      trFinished: "Marked finished",
+      aTitleNew: "Assign cleaning", aTitleEdit: "Edit cleaning",
+      aSubNew: "Pick a property and up to two cleaners, then save.",
+      aSubEdit: "Change the crew or the details, then save.",
+      aSave: "Assign", aSaveEdit: "Save changes", aCancel: "Cancel", aDelete: "Delete",
+      fProperty: "Property", fDate: "Date", fStart: "Start time", fHours: "Duration, hours",
+      fPay: "Job pay, ₪", fManager: "Manager on site", fCrew: "Crew",
+      fNobody: "— nobody yet —", fNoSecond: "— no second cleaner —",
+      fNote: "Note for the cleaners",
+      fNotePh: "Anything unusual — late check-out, pool deck, a broken blind to photograph…",
+      fSend: "Send the WhatsApp messages straight away",
+      hintNone: "nobody assigned — the job stays in the gap list",
+      hintSolo: "solo job", hintPair: "two cleaners", hintEach: "h each", hintLabour: "labour hours",
+      splitJobPay: "Job pay", splitNothing: "Expected job pay",
+      splitNothing2: "— nothing to split yet.", splitShares: "shares total",
+      conflict: "Conflict", heads: "Heads up",
+      cSameTwice: "The same cleaner is picked twice — choose a different second person.",
+      cBooked: "is already booked at", cThatDay: "that day.",
+      cMgrBusy: "is escorting a cleaning at", cSameTime: "at the same time.",
+      cB2B: "Back-to-back day — the next guest checks in at 15:00, but this cleaning ends at",
+      cShares: "The shares add up to", cButPay: "but the job pay is", cWillUse: "Saving will use",
+      cBand: "rates normally sit between", cAnd: "and", cOutside: "is outside the usual band.",
+      waPreview: "WhatsApp preview →", waPreviewNone: "WhatsApp preview — no cleaner selected, nothing will be sent",
+      waCapForm: "Goes out on save. These are her reply buttons, not yours.",
+      waCapNone: "Nothing will be sent until somebody is assigned.",
+      tSaved: "Cleaning saved ·", tSent: "WhatsApp sent to", tNotSent: "not sent yet",
+      tNoCrew: "Cleaning saved without a crew — it stays in the gap list.",
+      tDeleted: "Cleaning deleted.", tAnd: "and",
+      msgTitle: "Cleaning assignment", msgAddr: "Address", msgArea: "Area", msgDate: "Date",
+      msgTime: "Time", msgHours: "h", msgPay: "Your pay", msgWith: "Working with",
+      msgNote: "Note", msgMeet: "will meet you at the door."
+    },
+    changes: [
+      { lvl: "crit", t: "Booking cancelled — cleaning already sent",
+        d: "<b>Tarshish 3, apt 12</b> — the 12–15 Aug stay disappeared from the Airbnb feed. A cleaning is " +
+           "booked for <b>15 Aug, 11:30</b> and <b>Marina K. already confirmed it on WhatsApp.</b>",
+        m: "airbnb.ics · uid 4f21c9 · detected 09:42",
+        a: ["Cancel &amp; notify Marina", "Keep", "Ignore"] },
+      { lvl: "warn", t: "Stay extended — check-out moved",
+        d: "<b>Los Angeles 6, apt 7</b> — check-out moved from <b>19 Aug</b> to <b>21 Aug</b>. Nobody is on " +
+           "that job yet, so there is nothing to un-tell — but the gap moves with it.",
+        m: "airbnb.ics · uid 9ba077 · detected 09:42",
+        a: ["Move to 21 Aug", "Keep", "Ignore"] },
+      { lvl: "crit", t: "Overlapping bookings on one property",
+        d: "<b>Antibes 2, apt 305 (Marina)</b> — Airbnb has 22–26 Aug while Booking.com has 24–27 Aug. One of " +
+           "these is a double booking; the check-out date is unreliable until it is resolved.",
+        m: "airbnb.ics × booking.ics · detected 08:12",
+        a: ["Open property", "Ignore"] },
+      { lvl: "info", t: "New booking — no cleaning scheduled yet",
+        d: "<b>Kamen 5, apt 21 (Ir HaYamim)</b> — new stay 27 Aug – 3 Sep. Check-out on <b>3 Sep</b> has no cleaning.",
+        m: "airbnb.ics · uid c7e310 · detected 07:55",
+        a: ["Schedule cleaning", "Ignore"] }
+    ]
+  };
+
+  DICT.ru = {
+    dir: "ltr", tag: "RU",
+    dow: ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"],
+    months: ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"],
+    money: function (n) { return "₪" + Number(n || 0).toLocaleString("ru-RU"); },
+    dateLong: function (d) {
+      return this.dow[d.getUTCDay()] + ", " + d.getUTCDate() + " " + this.months[d.getUTCMonth()] +
+        " " + d.getUTCFullYear();
+    },
+    dateShort: function (d) { return this.dow[d.getUTCDay()] + ", " + d.getUTCDate() + " " + this.months[d.getUTCMonth()]; },
+    n: function (n, k) {
+      var w = { cleanings: ["уборка","уборки","уборок"], properties: ["объект","объекта","объектов"],
+                villas: ["вилла","виллы","вилл"], apartments: ["квартира","квартиры","квартир"],
+                cleaners: ["уборщицу","уборщиц","уборщиц"], people: ["человек","человека","человек"],
+                active: ["активна","активны","активных"] }[k];
+      var a = Math.abs(n) % 100, b = a % 10, f;
+      if (a > 10 && a < 20) f = w[2];
+      else if (b > 1 && b < 5) f = w[1];
+      else if (b === 1) f = w[0];
+      else f = w[2];
+      return n + " " + f;
+    },
+    beds: function (n) { return n === 0 ? "студия" : n + " комн."; },
+    kind: { villa: "Вилла", apt: "Квартира" },
+    mgrs: { m1: "Дмитрий В.", m2: "Йоси Л.", m3: "Анна С." },
+    cleaners: {
+      mk: { name: "Марина К.",  langs: "РУ / ИВ",  since: "март 2024" },
+      op: { name: "Ольга П.",   langs: "РУ / АНГ", since: "ноябрь 2023" },
+      yb: { name: "Яэль Б.",    langs: "ИВ / АНГ", since: "июнь 2024" },
+      rt: { name: "Ривка Т.",   langs: "ИВ",       since: "январь 2025" },
+      ns: { name: "Наталья С.", langs: "РУ / ИВ",  since: "февраль 2026" }
+    },
+    props: {
+      P1: { addr: "Таршиш 3, кв. 12",      short: "Таршиш 3/12",      area: "Ир-а-Ямим" },
+      P2: { addr: "Ретамим 8",             short: "Ретамим 8",        area: "Шахамон 27" },
+      P3: { addr: "Лос-Анджелес 6, кв. 7", short: "Лос-Анджелес 6/7", area: "Альмогим" },
+      P4: { addr: "Офарим 14",             short: "Офарим 14",        area: "Ганим Бет" },
+      P5: { addr: "Антиб 2, кв. 305",      short: "Антиб 2/305",      area: "Марина" },
+      P6: { addr: "Дурбан 11",             short: "Дурбан 11",        area: "Мицпе-Ям" },
+      P7: { addr: "ха-Тмарим 42, кв. 9",   short: "ха-Тмарим 42/9",   area: "Центр" },
+      P8: { addr: "Камен 5, кв. 21",       short: "Камен 5/21",       area: "Ир-а-Ямим" }
+    },
+    notes: {
+      "P3|2026-08-13": "Оборот — следующий гость заезжает ровно в 15:00, балкон тоже.",
+      "P5|2026-08-14": "Гость пожаловался на сломанные жалюзи в спальне — сфотографируйте до начала.",
+      "P1|2026-08-15": "Договорились о позднем выезде до 12:00, начинайте после.",
+      "P8|2026-08-15": "Оборот после шести ночей — генеральная, заложите время с запасом."
+    },
+    status: {
+      done: "Выполнено", running: "В работе", confirmed: "Подтверждено",
+      sent: "Ждём ответа", assigned: "Не отправлено", unassigned: "Нет исполнителя"
+    },
+    ui: {
+      brand: "Уборки Эйлат", brandSub: "Пульт менеджера",
+      navOps: "Работа", navRecords: "Справочники",
+      calendar: "График", timeline: "Лента объектов", changes: "Изменения",
+      properties: "Объекты", cleaners: "Уборщицы", reports: "Отчёты",
+      manager: "менеджер", today: "Сегодня", prevMonth: "Предыдущий месяц", nextMonth: "Следующий месяц",
+      august: "Август", allCleaners: "Все уборщицы", pairJobs: "Уборки на двоих",
+      unassignedOnly: "Только без исполнителя", allProps: "Все объекты",
+      villasOnly: "Только виллы", aptsOnly: "Только квартиры",
+      filterCleaner: "Фильтр по уборщице", filterType: "Фильтр по типу объекта",
+      tileToday: "Сегодня · 13 авг", tileTodayN: "назначено",
+      tileGaps: "Без исполнителя · 7 дней", tileGapsN: "выездов никому не отдано",
+      tileGapsOk: "всё закрыто",
+      tileWait: "Ждут ответа в WhatsApp", tileWaitN: "отправлено, не подтверждено",
+      tilePay: "К выплате · август", tilePayN: "на",
+      schedTitle: "График уборок", assignBtn: "+ Назначить уборку",
+      needsCleaner: "Нужен исполнитель", more: "ещё",
+      b2b: "ОБОРОТ", villaShort: "ВИЛЛА", noCrewLegend: "Исполнителя нет",
+      legendPair: "<b>×2</b> — двое, оплата делится",
+      legendB2B: "<b>ОБОРОТ</b> — гость заезжает в тот же день",
+      calNote: "Брони приезжают из календарей площадок сами — руками ничего не вводится. В сетке показаны " +
+        "<b>уборки</b>, по одной на каждый выезд, цвет — это исполнитель. Карточка, залитая двумя цветами, — " +
+        "<b>уборка на двоих</b>. Наведите на день и нажмите <b>+</b>, чтобы назначить, или кликните по красной " +
+        "карточке, чтобы закрыть дыру.<br><br>Эта неделя расписана. <b>С воскресенья 16 августа все выезды " +
+        "стоят открытыми</b> — брони уже пришли, работа никому не отдана. Этот красный хвост и есть очередь " +
+        "менеджера на неделю вперёд.",
+      tlTitle: "Занятость и обороты", tlSub: "Объект × день — вид, который выдержит и пятьдесят квартир",
+      tlProperty: "Объект",
+      tlLegendBooked: "Занято — на полосе площадка",
+      tlLegendClean: "Уборка в день выезда, буквы — исполнители",
+      tlLegendPair: "Уборка на двоих", tlLegendGap: "Выезд без исполнителя",
+      tlBooked: "загрузка",
+      chTitle: "Изменения с прошлого просмотра", chSub: "Последняя синхронизация 13 авг, 09:42 · каждые 15 минут",
+      chSync: "Синхронизировать",
+      chNote: "Система никогда не правит график сама. Она следит за импортированными календарями, замечает, " +
+        "что сдвинулось, и передаёт решение менеджеру — чтобы отменённая бронь не оставила уборщицу стоять " +
+        "у занятой квартиры.",
+      propImport: "Импорт календаря", propAdd: "+ Добавить объект",
+      propNote: "Ставка, норма времени и стандартный размер бригады задаются на объекте и подставляются в " +
+        "каждую новую уборку — менеджер правит их только когда что-то нестандартное. <b>Календари</b> — это " +
+        "список импортируемых лент: объект без ленты сам по себе выездов не даст.",
+      clAdd: "+ Добавить уборщицу",
+      clNote: "У уборщиц нет ни логина, ни доступа к графику — WhatsApp их единственный интерфейс. На уборке " +
+        "вдвоём каждая получает своё сообщение со своей долей оплаты. Деактивация останавливает все будущие " +
+        "сообщения, но история работ и выплат остаётся в отчётах.",
+      period: "1 – 31 августа 2026", byCleaner: "По уборщицам", byProperty: "По объектам", exportCsv: "Выгрузить CSV",
+      jobLog: "Журнал работ", pickRow: "Кликните строку выше, чтобы переключить",
+      thProperty: "Объект", thType: "Тип", thSize: "Размер", thManager: "Менеджер",
+      thStdHours: "Норма, ч", thCrew: "Бригада", thRate: "Ставка", thCalendars: "Календари",
+      thAugJobs: "Уборок", thCoverage: "Покрытие", thAssign: "Назначить",
+      thCleaner: "Уборщица", thWhatsApp: "WhatsApp", thLangs: "Языки", thSince: "В команде с",
+      thSolo: "Одна", thPaired: "В паре", thHours: "Часы", thPayout: "К выплате", thAreas: "Районы",
+      thStatus: "Статус", thGiveJob: "Дать работу", thActive: "Активна",
+      thCleanings: "Уборок", thProperties: "Объектов", thCompleted: "Выполнено",
+      thLabour: "Человеко-часы", thCost: "Стоимость", thCleaners: "Уборщицы",
+      thDate: "Дата", thWindow: "Окно", thTheirPay: "Её оплата", thCrewCol: "Бригада",
+      total: "Итого", covered: "закрыто", open: "открыто", noJobs: "За период уборок нет.",
+      solo: "одна", withWho: "вместе с", unassigned: "без исполнителя",
+      totalProps: "всего", villas: "вилл", apartments: "квартир", activeSuffix: "· август 2026",
+      shown: "показано", twoCleaner: "на двоих",
+      mCrew: "Бригада", mNobody: "пока никого", mManager: "Сопровождает", mWindow: "Окно",
+      mDuration: "Длительность", mEach: "на каждого", mJobPay: "Оплата за уборку", mStatus: "Статус",
+      mNote: "Комментарий менеджера", mEdit: "Изменить", mAssignCrew: "Назначить бригаду",
+      mResend: "Отправить снова", mCancel: "Отменить уборку", mClose: "Закрыть",
+      b2bWarn: "Оборот — гость заезжает в 15:00",
+      waTo: "Кому:", waNothing: "Ничего не отправлено — исполнителя нет",
+      waWillGo: "Так будет выглядеть сообщение — уйдёт тому, кого назначите, сразу после сохранения.",
+      waReplied: "Она ответила кнопкой ниже.",
+      waWaiting: "Ждём, пока она нажмёт одну из кнопок.",
+      waOnSave: "Уйдёт автоматически при сохранении.",
+      waAccept: "Беру", waDecline: "Не смогу",
+      trSent: "Отправлено", trDelivered: "Доставлено", trRead: "Прочитано", trAccepted: "Принято",
+      trFinished: "Отмечено «готово»",
+      aTitleNew: "Назначение уборки", aTitleEdit: "Изменение уборки",
+      aSubNew: "Выберите объект и до двух исполнителей, затем сохраните.",
+      aSubEdit: "Поменяйте исполнителей или детали и сохраните.",
+      aSave: "Назначить", aSaveEdit: "Сохранить", aCancel: "Отмена", aDelete: "Удалить",
+      fProperty: "Объект", fDate: "Дата", fStart: "Начало", fHours: "Длительность, ч",
+      fPay: "Оплата за уборку, ₪", fManager: "Сопровождает", fCrew: "Бригада",
+      fNobody: "— пока никого —", fNoSecond: "— без второй —",
+      fNote: "Комментарий для исполнителей",
+      fNotePh: "Что-то необычное — поздний выезд, бассейн, сломанные жалюзи, которые надо сфотографировать…",
+      fSend: "Отправить сообщения в WhatsApp сразу",
+      hintNone: "исполнителя нет — уборка останется в списке дыр",
+      hintSolo: "одна", hintPair: "двое", hintEach: "ч на каждую", hintLabour: "человеко-часов",
+      splitJobPay: "Оплата", splitNothing: "Ожидаемая оплата",
+      splitNothing2: "— делить пока не на кого.", splitShares: "доли дают",
+      conflict: "Конфликт", heads: "Внимание",
+      cSameTwice: "Один и тот же человек выбран дважды — выберите другую вторую уборщицу.",
+      cBooked: "в это время уже занята на объекте", cThatDay: "",
+      cMgrBusy: "в это же время сопровождает уборку на объекте", cSameTime: "",
+      cB2B: "День оборота — следующий гость заезжает в 15:00, а уборка заканчивается в",
+      cShares: "Доли складываются в", cButPay: "а оплата за уборку —",
+      cWillUse: "При сохранении будет записано",
+      cBand: "обычно стоят от", cAnd: "до", cOutside: "выходит за привычные рамки.",
+      waPreview: "Превью WhatsApp →", waPreviewNone: "Превью WhatsApp — исполнитель не выбран, отправлять некому",
+      waCapForm: "Уйдёт при сохранении. Кнопки ниже — её, не ваши.",
+      waCapNone: "Пока никто не назначен, ничего не отправится.",
+      tSaved: "Уборка сохранена ·", tSent: "сообщение отправлено:", tNotSent: "не отправлено",
+      tNoCrew: "Уборка сохранена без исполнителя — осталась в списке дыр.",
+      tDeleted: "Уборка удалена.", tAnd: "и",
+      msgTitle: "Назначение на уборку", msgAddr: "Адрес", msgArea: "Район", msgDate: "Дата",
+      msgTime: "Время", msgHours: "ч", msgPay: "Ваша оплата", msgWith: "Работаете с",
+      msgNote: "Комментарий", msgMeet: "встретит вас у двери."
+    },
+    changes: [
+      { lvl: "crit", t: "Бронь отменена — уборка уже отправлена",
+        d: "<b>Таршиш 3, кв. 12</b> — проживание 12–15 августа пропало из ленты Airbnb. На <b>15 августа, " +
+           "11:30</b> назначена уборка, и <b>Марина К. уже подтвердила её в WhatsApp.</b>",
+        m: "airbnb.ics · uid 4f21c9 · замечено в 09:42",
+        a: ["Отменить и сообщить Марине", "Оставить", "Пропустить"] },
+      { lvl: "warn", t: "Гость продлился — выезд сдвинулся",
+        d: "<b>Лос-Анджелес 6, кв. 7</b> — выезд перенесён с <b>19 августа</b> на <b>21 августа</b>. " +
+           "Исполнителя на этой уборке ещё нет, отзывать некого — но дыра переезжает вместе с выездом.",
+        m: "airbnb.ics · uid 9ba077 · замечено в 09:42",
+        a: ["Перенести на 21 августа", "Оставить", "Пропустить"] },
+      { lvl: "crit", t: "Брони на одном объекте пересекаются",
+        d: "<b>Антиб 2, кв. 305 (Марина)</b> — в Airbnb стоит 22–26 августа, в Booking.com 24–27 августа. " +
+           "Одна из них — двойное бронирование; пока это не разобрано, дате выезда верить нельзя.",
+        m: "airbnb.ics × booking.ics · замечено в 08:12",
+        a: ["Открыть объект", "Пропустить"] },
+      { lvl: "info", t: "Новая бронь — уборка ещё не назначена",
+        d: "<b>Камен 5, кв. 21 (Ир-а-Ямим)</b> — новое проживание 27 августа — 3 сентября. На выезд " +
+           "<b>3 сентября</b> уборки нет.",
+        m: "airbnb.ics · uid c7e310 · замечено в 07:55",
+        a: ["Назначить уборку", "Пропустить"] }
+    ]
+  };
+
+  DICT.he = {
+    dir: "rtl", tag: "עב",
+    dow: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"],
+    months: ["ינו׳","פבר׳","מרץ","אפר׳","מאי","יוני","יולי","אוג׳","ספט׳","אוק׳","נוב׳","דצמ׳"],
+    money: function (n) { return "₪" + Number(n || 0).toLocaleString("he-IL"); },
+    dateLong: function (d) {
+      return "יום " + this.dow[d.getUTCDay()] + ", " + d.getUTCDate() + " ב" + this.months[d.getUTCMonth()] +
+        " " + d.getUTCFullYear();
+    },
+    dateShort: function (d) { return this.dow[d.getUTCDay()] + ", " + d.getUTCDate() + " ב" + this.months[d.getUTCMonth()]; },
+    n: function (n, k) {
+      var w = { cleanings: ["ניקיון","ניקיונות"], properties: ["נכס","נכסים"],
+                villas: ["וילה","וילות"], apartments: ["דירה","דירות"],
+                cleaners: ["מנקה","מנקות"], people: ["מנקה","מנקות"],
+                active: ["פעילה","פעילות"] }[k];
+      return n + " " + (n === 1 ? w[0] : w[1]);
+    },
+    beds: function (n) { return n === 0 ? "סטודיו" : n + " חדרים"; },
+    kind: { villa: "וילה", apt: "דירה" },
+    mgrs: { m1: "דמיטרי ו.", m2: "יוסי ל.", m3: "אנה ס." },
+    cleaners: {
+      mk: { name: "מרינה ק.", langs: "רוס׳ / עב׳", since: "מרץ 2024" },
+      op: { name: "אולגה פ.", langs: "רוס׳ / אנג׳", since: "נוב׳ 2023" },
+      yb: { name: "יעל ב.",   langs: "עב׳ / אנג׳", since: "יוני 2024" },
+      rt: { name: "רבקה ט.",  langs: "עב׳",        since: "ינו׳ 2025" },
+      ns: { name: "נטליה ס.", langs: "רוס׳ / עב׳", since: "פבר׳ 2026" }
+    },
+    props: {
+      P1: { addr: "תרשיש 3, דירה 12",    short: "תרשיש 3/12",    area: "עיר הימים" },
+      P2: { addr: "רתמים 8",             short: "רתמים 8",       area: "שחמון 27" },
+      P3: { addr: "לוס אנג׳לס 6, דירה 7",short: "לוס אנג׳לס 6/7",area: "אלמוגים" },
+      P4: { addr: "עופרים 14",           short: "עופרים 14",     area: "גנים ב׳" },
+      P5: { addr: "אנטיב 2, דירה 305",   short: "אנטיב 2/305",   area: "מרינה" },
+      P6: { addr: "דרבן 11",             short: "דרבן 11",       area: "מצפה ים" },
+      P7: { addr: "התמרים 42, דירה 9",   short: "התמרים 42/9",   area: "מרכז העיר" },
+      P8: { addr: "קמן 5, דירה 21",      short: "קמן 5/21",      area: "עיר הימים" }
+    },
+    notes: {
+      "P3|2026-08-13": "רצף — האורח הבא מגיע בדיוק ב-15:00, גם המרפסת.",
+      "P5|2026-08-14": "האורח דיווח על תריס שבור בחדר השינה — צלמי לפני שאת מתחילה.",
+      "P1|2026-08-15": "סוכם על יציאה מאוחרת עד 12:00, התחילי אחרי.",
+      "P8|2026-08-15": "רצף אחרי שישה לילות — ניקיון יסודי, קחי זמן נוסף."
+    },
+    status: {
+      done: "בוצע", running: "בעבודה", confirmed: "אושר",
+      sent: "ממתין לתשובה", assigned: "לא נשלח", unassigned: "אין שיבוץ"
+    },
+    ui: {
+      brand: "ניקיונות אילת", brandSub: "מסך תפעול",
+      navOps: "תפעול", navRecords: "נתונים",
+      calendar: "לוח עבודה", timeline: "ציר זמן", changes: "שינויים",
+      properties: "נכסים", cleaners: "מנקות", reports: "דוחות",
+      manager: "מנהל", today: "היום", prevMonth: "חודש קודם", nextMonth: "חודש הבא",
+      august: "אוגוסט", allCleaners: "כל המנקות", pairJobs: "עבודות בזוג",
+      unassignedOnly: "ללא שיבוץ בלבד", allProps: "כל הנכסים",
+      villasOnly: "וילות בלבד", aptsOnly: "דירות בלבד",
+      filterCleaner: "סינון לפי מנקה", filterType: "סינון לפי סוג נכס",
+      tileToday: "היום · 13 באוג׳", tileTodayN: "משובצים",
+      tileGaps: "ללא שיבוץ · 7 ימים", tileGapsN: "יציאות שאיש לא שובץ אליהן",
+      tileGapsOk: "הכול מכוסה",
+      tileWait: "ממתינות לתשובה בוואטסאפ", tileWaitN: "נשלח, טרם אושר",
+      tilePay: "לתשלום · אוגוסט", tilePayN: "בין",
+      schedTitle: "לוח הניקיונות", assignBtn: "+ שיבוץ ניקיון",
+      needsCleaner: "דרושה מנקה", more: "עוד",
+      b2b: "רצף", villaShort: "וילה", noCrewLegend: "עדיין ללא שיבוץ",
+      legendPair: "<b>×2</b> — שתי מנקות, התשלום מתחלק",
+      legendB2B: "<b>רצף</b> — אורח נכנס באותו יום",
+      calNote: "ההזמנות מגיעות מיומני הפלטפורמות לבד — שום דבר לא מוקלד ידנית. בלוח מוצגים <b>ניקיונות</b>, " +
+        "אחד לכל יציאה, והצבע הוא המנקה. כרטיס בשני צבעים הוא <b>עבודה בזוג</b>. עמדי עם העכבר על יום ולחצי " +
+        "<b>+</b> כדי לשבץ, או לחצי על כרטיס אדום כדי לסגור חור.<br><br>השבוע הזה משובץ. <b>מיום ראשון, " +
+        "16 באוגוסט, כל היציאות עדיין פתוחות</b> — ההזמנות כבר נכנסו, העבודה טרם חולקה. הזנב האדום הזה הוא " +
+        "התור של המנהל לשבוע הבא.",
+      tlTitle: "תפוסה ורצפים", tlSub: "נכס × יום — התצוגה שתחזיק גם ב-50 יחידות",
+      tlProperty: "נכס",
+      tlLegendBooked: "תפוס — על הפס מופיעה הפלטפורמה",
+      tlLegendClean: "ניקיון ביום היציאה, האותיות הן המנקות",
+      tlLegendPair: "עבודה בזוג", tlLegendGap: "יציאה ללא שיבוץ",
+      tlBooked: "תפוסה",
+      chTitle: "שינויים מאז הבדיקה האחרונה", chSub: "סנכרון אחרון 13 באוג׳, 09:42 · כל 15 דקות",
+      chSync: "סנכרון עכשיו",
+      chNote: "המערכת לעולם לא משנה את הלוח בעצמה. היא עוקבת אחרי היומנים המיובאים, מזהה מה זז, ומעבירה את " +
+        "ההחלטה למנהל — כדי שהזמנה שבוטלה לא תשאיר מנקה עומדת מול דירה תפוסה.",
+      propImport: "ייבוא יומן", propAdd: "+ נכס חדש",
+      propNote: "התעריף, משך הזמן התקני וגודל הצוות מוגדרים לכל נכס ומתמלאים אוטומטית בכל ניקיון חדש, כך " +
+        "שהמנהל משנה אותם רק כשמשהו חריג. <b>יומנים</b> היא רשימת הפידים המיובאים — נכס בלי פיד לא ייצר " +
+        "יציאות בעצמו.",
+      clAdd: "+ מנקה חדשה",
+      clNote: "למנקות אין חשבון ואין גישה ללוח — וואטסאפ הוא הממשק היחיד שלהן. בעבודה בזוג כל אחת מקבלת הודעה " +
+        "משלה עם החלק שלה בתשלום. השבתה עוצרת את כל ההודעות העתידיות, אבל היסטוריית העבודות והתשלומים נשמרת " +
+        "בדוחות.",
+      period: "1 – 31 באוגוסט 2026", byCleaner: "לפי מנקה", byProperty: "לפי נכס", exportCsv: "ייצוא CSV",
+      jobLog: "יומן עבודות", pickRow: "לחצי על שורה למעלה כדי להחליף",
+      thProperty: "נכס", thType: "סוג", thSize: "גודל", thManager: "מנהל",
+      thStdHours: "שעות תקן", thCrew: "צוות", thRate: "תעריף", thCalendars: "יומנים",
+      thAugJobs: "ניקיונות", thCoverage: "כיסוי", thAssign: "שבץ",
+      thCleaner: "מנקה", thWhatsApp: "וואטסאפ", thLangs: "שפות", thSince: "בצוות מאז",
+      thSolo: "לבד", thPaired: "בזוג", thHours: "שעות", thPayout: "לתשלום", thAreas: "אזורים",
+      thStatus: "סטטוס", thGiveJob: "שבץ עבודה", thActive: "פעילה",
+      thCleanings: "ניקיונות", thProperties: "נכסים", thCompleted: "הושלמו",
+      thLabour: "שעות עבודה", thCost: "עלות", thCleaners: "מנקות",
+      thDate: "תאריך", thWindow: "חלון זמן", thTheirPay: "התשלום שלה", thCrewCol: "צוות",
+      total: "סה״כ", covered: "מכוסה", open: "פתוחים", noJobs: "אין ניקיונות בתקופה הזו.",
+      solo: "לבד", withWho: "יחד עם", unassigned: "ללא שיבוץ",
+      totalProps: "סה״כ", villas: "וילות", apartments: "דירות", activeSuffix: "· אוגוסט 2026",
+      shown: "מוצגים", twoCleaner: "בזוג",
+      mCrew: "צוות", mNobody: "עדיין אף אחת", mManager: "מלווה בשטח", mWindow: "חלון זמן",
+      mDuration: "משך", mEach: "לכל אחת", mJobPay: "תשלום לניקיון", mStatus: "סטטוס",
+      mNote: "הערת מנהל", mEdit: "עריכה", mAssignCrew: "שיבוץ צוות",
+      mResend: "שליחה חוזרת", mCancel: "ביטול הניקיון", mClose: "סגירה",
+      b2bWarn: "רצף — האורח הבא נכנס ב-15:00",
+      waTo: "אל:", waNothing: "עדיין לא נשלח דבר — אין שיבוץ",
+      waWillGo: "כך תיראה ההודעה — היא תישלח למי שתשבצי, מיד עם השמירה.",
+      waReplied: "היא ענתה בכפתור שלמטה.",
+      waWaiting: "ממתינים שהיא תלחץ על אחד מאלה.",
+      waOnSave: "נשלח אוטומטית עם שמירת העבודה.",
+      waAccept: "מאשרת", waDecline: "לא אוכל",
+      trSent: "נשלח", trDelivered: "נמסר", trRead: "נקרא", trAccepted: "אושר",
+      trFinished: "סומן כהושלם",
+      aTitleNew: "שיבוץ ניקיון", aTitleEdit: "עריכת ניקיון",
+      aSubNew: "בחרי נכס ועד שתי מנקות, ואז שמרי.",
+      aSubEdit: "שני את הצוות או את הפרטים, ואז שמרי.",
+      aSave: "שבץ", aSaveEdit: "שמור שינויים", aCancel: "ביטול", aDelete: "מחק",
+      fProperty: "נכס", fDate: "תאריך", fStart: "שעת התחלה", fHours: "משך בשעות",
+      fPay: "תשלום לניקיון, ₪", fManager: "מלווה בשטח", fCrew: "צוות",
+      fNobody: "— עדיין אף אחת —", fNoSecond: "— בלי מנקה שנייה —",
+      fNote: "הערה למנקות",
+      fNotePh: "כל דבר חריג — יציאה מאוחרת, דק הבריכה, תריס שבור שצריך לצלם…",
+      fSend: "לשלוח את ההודעות בוואטסאפ מיד",
+      hintNone: "אין שיבוץ — העבודה תישאר ברשימת החורים",
+      hintSolo: "לבד", hintPair: "שתי מנקות", hintEach: "שעות לכל אחת", hintLabour: "שעות עבודה",
+      splitJobPay: "תשלום", splitNothing: "תשלום צפוי",
+      splitNothing2: "— אין עדיין בין מי לחלק.", splitShares: "החלקים מסתכמים ב-",
+      conflict: "התנגשות", heads: "לתשומת לב",
+      cSameTwice: "אותה מנקה נבחרה פעמיים — בחרי אדם אחר למקום השני.",
+      cBooked: "כבר משובצת באותה שעה בנכס", cThatDay: "",
+      cMgrBusy: "מלווה באותה שעה ניקיון בנכס", cSameTime: "",
+      cB2B: "יום רצף — האורח הבא נכנס ב-15:00, אבל הניקיון מסתיים ב-",
+      cShares: "החלקים מסתכמים ב-", cButPay: "אבל התשלום לניקיון הוא",
+      cWillUse: "בשמירה יירשם",
+      cBand: "בדרך כלל נעות בין", cAnd: "ל-", cOutside: "חורג מהטווח הרגיל.",
+      waPreview: "תצוגה מקדימה →", waPreviewNone: "תצוגה מקדימה — לא נבחרה מנקה, אין למי לשלוח",
+      waCapForm: "תישלח עם השמירה. הכפתורים למטה שלה, לא שלך.",
+      waCapNone: "כל עוד אף אחת לא שובצה, שום דבר לא יישלח.",
+      tSaved: "הניקיון נשמר ·", tSent: "ההודעה נשלחה אל", tNotSent: "טרם נשלח",
+      tNoCrew: "הניקיון נשמר בלי צוות — הוא נשאר ברשימת החורים.",
+      tDeleted: "הניקיון נמחק.", tAnd: "ו-",
+      msgTitle: "שיבוץ לניקיון", msgAddr: "כתובת", msgArea: "אזור", msgDate: "תאריך",
+      msgTime: "שעות", msgHours: "שעות", msgPay: "התשלום שלך", msgWith: "עובדת עם",
+      msgNote: "הערה", msgMeet: "יפגוש אותך בכניסה."
+    },
+    changes: [
+      { lvl: "crit", t: "ההזמנה בוטלה — הניקיון כבר נשלח",
+        d: "<b>תרשיש 3, דירה 12</b> — השהות של 12–15 באוגוסט נעלמה מהפיד של Airbnb. משובץ ניקיון ל־<b>15 " +
+           "באוגוסט, 11:30</b>, ו<b>מרינה ק. כבר אישרה אותו בוואטסאפ.</b>",
+        m: "airbnb.ics · uid 4f21c9 · זוהה ב-09:42",
+        a: ["בטל והודע למרינה", "השאר", "התעלם"] },
+      { lvl: "warn", t: "השהות הוארכה — היציאה זזה",
+        d: "<b>לוס אנג׳לס 6, דירה 7</b> — היציאה הועברה מ־<b>19 באוגוסט</b> ל־<b>21 באוגוסט</b>. אף אחת עדיין " +
+           "לא משובצת לעבודה הזו, אז אין למי להודיע — אבל החור זז יחד איתה.",
+        m: "airbnb.ics · uid 9ba077 · זוהה ב-09:42",
+        a: ["העבר ל-21 באוגוסט", "השאר", "התעלם"] },
+      { lvl: "crit", t: "הזמנות חופפות על אותו נכס",
+        d: "<b>אנטיב 2, דירה 305 (מרינה)</b> — ב-Airbnb רשום 22–26 באוגוסט וב-Booking.com 24–27 באוגוסט. אחת " +
+           "מהן היא הזמנה כפולה; עד שזה ייפתר אי אפשר לסמוך על תאריך היציאה.",
+        m: "airbnb.ics × booking.ics · זוהה ב-08:12",
+        a: ["פתח נכס", "התעלם"] },
+      { lvl: "info", t: "הזמנה חדשה — עדיין לא שובץ ניקיון",
+        d: "<b>קמן 5, דירה 21 (עיר הימים)</b> — שהות חדשה 27 באוגוסט – 3 בספטמבר. ליציאה ב־<b>3 בספטמבר</b> " +
+           "אין ניקיון.",
+        m: "airbnb.ics · uid c7e310 · זוהה ב-07:55",
+        a: ["שבץ ניקיון", "התעלם"] }
+    ]
+  };
+
+  /* ================= runtime ================= */
+
+  var LOC = "ru";
+  var L = DICT[LOC];
+  var U = L.ui;
+
+  function P(pid) { return L.props[pid]; }
+  function kindOf(pid) { return L.kind[PROPS[pid].kind]; }
+  function bedsOf(pid) { return L.beds(PROPS[pid].beds); }
+  function mgrName(id) { return L.mgrs[id]; }
+  function cName(id) { return L.cleaners[id].name; }
+  function money(n) { return L.money(n); }
+
+  function fmtTime(h) {
+    var hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+    return (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
+  }
+  function toH(t) { var p = String(t).split(":"); return parseInt(p[0], 10) + parseInt(p[1] || "0", 10) / 60; }
+  function iso(d) { return d.toISOString().slice(0, 10); }
+  function addDays(d, n) { var x = new Date(d.getTime()); x.setUTCDate(x.getUTCDate() + n); return x; }
+  function dOf(k) { return new Date(k + "T00:00:00Z"); }
+  function dateLong(k) { return L.dateLong(dOf(k)); }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function crewIds(c) { return (c.crew || []).map(function (m) { return m.id; }); }
+  function crewNames(c) { return (c.crew || []).map(function (m) { return cName(m.id); }).join(" + "); }
+  function crewBg(crew) {
+    if (!crew || !crew.length) return "var(--danger)";
+    if (crew.length === 1) return COLORS[crew[0].id];
+    return "linear-gradient(100deg, " + COLORS[crew[0].id] + " 0 50%, " + COLORS[crew[1].id] + " 50% 100%)";
+  }
+  function crewMark(crew) {
+    if (!crew.length) return "!";
+    return crew.map(function (m) { return cName(m.id).charAt(0); }).join("");
+  }
+  function jobTotal(c) {
+    if (c.crew && c.crew.length) return c.crew.reduce(function (a, m) { return a + m.pay; }, 0);
+    return c.rate;
+  }
+  function evenSplit(total, n) {
+    if (n < 1) return [];
+    var each = Math.round(total / n / 10) * 10, out = [];
+    for (var i = 0; i < n - 1; i++) out.push(each);
+    out.push(total - each * (n - 1));
+    return out;
+  }
+
+  var checkins = {};
+  STAYS.forEach(function (s) { checkins[s[0] + "|" + s[1]] = true; });
+
+  var CLEANINGS = [];
+  STAYS.forEach(function (s) {
+    var pid = s[0], out = s[2];
+    if (out.slice(0, 7) !== "2026-08") return;
+    var key = pid + "|" + out;
+    var ids = Object.prototype.hasOwnProperty.call(ASSIGN, key) ? ASSIGN[key] : [];
+    var p = PROPS[pid];
+    var status = STATUS_OVERRIDE[key];
+    if (out >= UNSTAFFED_FROM) { ids = []; status = null; }
+    var shares = evenSplit(p.rate, ids.length);
+    if (!status) status = ids.length === 0 ? "unassigned" : (out < TODAY ? "done" : "assigned");
+    CLEANINGS.push({
+      id: key, pid: pid, date: out, status: status, noteKey: key,
+      crew: ids.map(function (id, i) { return { id: id, pay: shares[i] }; }),
+      turnover: !!checkins[key], hrs: p.hrs, rate: p.rate, mgr: p.mgr, start: 11.5, note: null
+    });
+  });
+
+  function noteOf(c) { return c.note !== null ? c.note : (L.notes[c.noteKey] || ""); }
+
+  function byId(id) {
+    for (var i = 0; i < CLEANINGS.length; i++) if (CLEANINGS[i].id === id) return CLEANINGS[i];
+    return null;
+  }
+
+  var view = "calendar";
+  var filterCleaner = "", filterType = "";
+  var repMode = "cleaner", repPick = "mk";
+  var editingId = null, payTouched = false;
+
+  function visible(c) {
+    if (filterType && PROPS[c.pid].kind !== filterType) return false;
+    if (!filterCleaner) return true;
+    if (filterCleaner === "none") return c.crew.length === 0;
+    if (filterCleaner === "pairs") return c.crew.length > 1;
+    return crewIds(c).indexOf(filterCleaner) !== -1;
+  }
+
+  /* ---------- shell ---------- */
+  var VIEWS = ["calendar", "timeline", "changes", "properties", "cleaners", "reports"];
+
+  function renderShell() {
+    document.documentElement.setAttribute("dir", L.dir);
+    document.documentElement.setAttribute("lang", LOC);
+
+    var nav = [
+      ["calendar", "▦", U.calendar, ""], ["timeline", "▤", U.timeline, ""],
+      ["changes", "⟳", U.changes, '<span class="badge">4</span>']
+    ].map(navBtn).join("");
+    var nav2 = [
+      ["properties", "⌂", U.properties, ""], ["cleaners", "☺", U.cleaners, ""],
+      ["reports", "▧", U.reports, ""]
+    ].map(navBtn).join("");
+
+    document.getElementById("root").innerHTML =
+      '<div class="app"><aside class="sidebar">' +
+        '<div class="brand"><span class="mark" aria-hidden="true">◧</span><span>' + U.brand +
+        "<small>" + U.brandSub + "</small></span></div>" +
+        '<div class="nav-label">' + U.navOps + "</div>" + nav +
+        '<div class="nav-label">' + U.navRecords + "</div>" + nav2 +
+      "</aside>" +
+      '<div class="main">' +
+        '<header class="topbar"><h1 id="page-title"></h1>' +
+          '<div class="who">' +
+            '<div class="locale">' + ["ru", "en", "he"].map(function (k) {
+              return '<button type="button" data-loc="' + k + '" aria-pressed="' + (k === LOC) + '">' +
+                DICT[k].tag + "</button>";
+            }).join("") + "</div>" +
+            "<span>" + mgrName("m1") + " · " + U.manager + "</span>" +
+            '<span class="avatar" aria-hidden="true">' + mgrName("m1").charAt(0) + "</span>" +
+          "</div></header>" +
+        '<div class="toolbar" id="date-controls">' +
+          '<button class="btn btn-ghost">' + U.today + "</button>" +
+          '<div class="stepper"><button type="button" aria-label="' + U.prevMonth + '">‹</button>' +
+            '<button type="button" aria-label="' + U.nextMonth + '">›</button></div>' +
+          '<div class="period">' + U.august + " <span>2026</span></div>" +
+          '<select class="filter" id="f-cleaner" aria-label="' + U.filterCleaner + '"></select>' +
+          '<select class="filter" id="f-type" aria-label="' + U.filterType + '">' +
+            '<option value="">' + U.allProps + "</option>" +
+            '<option value="villa">' + U.villasOnly + "</option>" +
+            '<option value="apt">' + U.aptsOnly + "</option></select>" +
+        "</div>" +
+        '<div class="content">' +
+          '<div class="tiles" id="tiles"></div>' +
+          '<section id="view-calendar">' +
+            '<div class="card"><div class="card-head"><h2>' + U.schedTitle + "</h2>" +
+              '<span class="sub" id="cal-sub"></span>' +
+              '<div class="right"><button class="btn btn-sm btn-primary" id="new-cleaning">' +
+                U.assignBtn + "</button></div></div>" +
+              '<div class="month-wrap"><div class="month" id="month"></div></div>' +
+              '<div class="agenda" id="agenda"></div><div class="legend" id="legend"></div></div>' +
+            '<div class="note">' + U.calNote + "</div></section>" +
+          '<section id="view-timeline" hidden><div class="card">' +
+            '<div class="card-head"><h2>' + U.tlTitle + '</h2><span class="sub">' + U.tlSub + "</span></div>" +
+            '<div class="tl-wrap"><div class="tl" id="tl"></div></div>' +
+            '<div class="legend">' +
+              '<span><i style="background:var(--booking)"></i>' + U.tlLegendBooked + "</span>" +
+              '<span><i style="background:var(--c-op)"></i>' + U.tlLegendClean + "</span>" +
+              '<span><i style="background:linear-gradient(100deg,var(--c-yb) 0 50%,var(--c-ns) 50% 100%)"></i>' +
+                U.tlLegendPair + "</span>" +
+              '<span><i style="background:var(--danger-soft);border:1px dashed var(--danger)"></i>' +
+                U.tlLegendGap + "</span></div></div></section>" +
+          '<section id="view-changes" hidden><div class="card">' +
+            '<div class="card-head"><h2>' + U.chTitle + '</h2><span class="sub">' + U.chSub + "</span>" +
+            '<div class="right"><button class="btn btn-sm">' + U.chSync + "</button></div></div>" +
+            '<div class="feed">' + L.changes.map(function (e) {
+              return '<div class="ev ' + e.lvl + '"><div class="body">' +
+                '<div class="t">' + e.t + '</div><div class="d">' + e.d + "</div>" +
+                '<div class="meta">' + e.m + "</div></div>" +
+                '<div class="acts">' + e.a.map(function (label, i) {
+                  return '<button class="btn btn-sm' + (i === 0 ? " btn-primary" : (i === e.a.length - 1 ? " btn-ghost" : "")) +
+                    '">' + label + "</button>";
+                }).join("") + "</div></div>";
+            }).join("") + "</div></div>" +
+            '<div class="note">' + U.chNote + "</div></section>" +
+          '<section id="view-properties" hidden><div class="card">' +
+            '<div class="card-head"><h2>' + U.properties + '</h2><span class="sub" id="prop-sub"></span>' +
+            '<div class="right"><button class="btn btn-sm">' + U.propImport + "</button>" +
+            '<button class="btn btn-sm btn-primary">' + U.propAdd + "</button></div></div>" +
+            '<div class="tbl-wrap"><table id="tbl-props"></table></div></div>' +
+            '<div class="note">' + U.propNote + "</div></section>" +
+          '<section id="view-cleaners" hidden><div class="card">' +
+            '<div class="card-head"><h2>' + U.cleaners + '</h2><span class="sub" id="clean-sub"></span>' +
+            '<div class="right"><button class="btn btn-sm btn-primary">' + U.clAdd + "</button></div></div>" +
+            '<div class="tbl-wrap"><table id="tbl-cleaners"></table></div></div>' +
+            '<div class="note">' + U.clNote + "</div></section>" +
+          '<section id="view-reports" hidden><div class="card">' +
+            '<div class="card-head"><h2>' + U.reports + '</h2><span class="sub">' + U.period + "</span>" +
+            '<div class="right"><button class="btn btn-sm" id="rep-by-cleaner" aria-pressed="true">' +
+              U.byCleaner + '</button><button class="btn btn-sm" id="rep-by-prop" aria-pressed="false">' +
+              U.byProperty + '</button><button class="btn btn-sm">' + U.exportCsv + "</button></div></div>" +
+            '<div class="tbl-wrap"><table id="rep-summary"></table></div></div>' +
+            '<div class="card"><div class="card-head"><h2 id="detail-title"></h2>' +
+            '<span class="sub">' + U.pickRow + "</span></div>" +
+            '<div class="tbl-wrap"><table id="rep-detail"></table></div></div></section>' +
+        "</div></div></div>" +
+      modalsHtml();
+
+    fillCleanerFilter();
+    fillFormSelects();
+  }
+
+  function navBtn(x) {
+    return '<button class="nav-item" data-view="' + x[0] + '" aria-current="' + (x[0] === view) + '">' +
+      '<span class="ico" aria-hidden="true">' + x[1] + "</span>" + x[2] + x[3] + "</button>";
+  }
+
+  function modalsHtml() {
+    return '<div class="backdrop" id="backdrop" hidden><div class="modal" role="dialog" aria-modal="true">' +
+      '<div class="modal-head"><div class="titles"><h2 id="m-title">—</h2>' +
+      '<div class="sub" id="m-sub">—</div></div>' +
+      '<div id="m-actions" style="display:flex;gap:8px;flex-wrap:wrap"></div>' +
+      '<button class="btn btn-ghost" id="m-close" aria-label="' + U.mClose + '">✕</button></div>' +
+      '<div class="modal-body" id="m-body"></div></div></div>' +
+
+      '<div class="backdrop" id="a-backdrop" hidden><div class="modal" role="dialog" aria-modal="true">' +
+      '<form id="a-form"><div class="modal-head"><div class="titles">' +
+      '<h2 id="a-title"></h2><div class="sub" id="a-sub"></div></div>' +
+      '<button type="button" class="btn btn-danger" id="a-delete" hidden>' + U.aDelete + "</button>" +
+      '<button type="button" class="btn" id="a-cancel">' + U.aCancel + "</button>" +
+      '<button type="submit" class="btn btn-primary" id="a-save"></button>' +
+      '<button type="button" class="btn btn-ghost" id="a-close" aria-label="' + U.mClose + '">✕</button></div>' +
+      '<div class="modal-body"><div class="form-grid">' +
+        '<label class="fld" style="grid-column:1/-1"><span>' + U.fProperty + '</span><select id="a-pid"></select></label>' +
+        '<label class="fld"><span>' + U.fDate + '</span><input type="date" id="a-date" min="2026-08-01" max="2026-09-30" required></label>' +
+        '<label class="fld"><span>' + U.fStart + '</span><input type="time" id="a-start" step="900" required></label>' +
+        '<label class="fld"><span>' + U.fHours + '</span><input type="number" id="a-hrs" step="0.5" min="0.5" max="12" required></label>' +
+        '<label class="fld"><span>' + U.fPay + '</span><input type="number" id="a-rate" step="10" min="0" required></label>' +
+        '<label class="fld"><span>' + U.fManager + '</span><select id="a-mgr"></select></label></div>' +
+      '<div class="crew" style="margin-top:14px"><div class="crew-head"><span>' + U.fCrew + "</span>" +
+        '<span id="a-crew-hint" style="font-weight:600;letter-spacing:0;text-transform:none"></span></div>' +
+        '<div class="crew-row"><span class="dot" id="a-dot1" style="--chip-bg:var(--line-strong)"></span>' +
+        '<select id="a-c1"></select><input type="number" id="a-p1" step="10" min="0"></div>' +
+        '<div class="crew-row"><span class="dot" id="a-dot2" style="--chip-bg:var(--line-strong)"></span>' +
+        '<select id="a-c2"></select><input type="number" id="a-p2" step="10" min="0"></div>' +
+        '<div class="crew-split" id="a-split"></div></div>' +
+      '<label class="fld" style="margin-top:14px"><span>' + U.fNote + "</span>" +
+        '<textarea id="a-note" placeholder="' + esc(U.fNotePh) + '"></textarea></label>' +
+      '<div id="a-warn" style="margin-top:14px"></div>' +
+      '<label class="check" style="margin-top:14px"><input type="checkbox" id="a-send" checked>' + U.fSend + "</label>" +
+      '<div id="a-wa-list" style="margin-top:14px"></div>' +
+      "</div></form></div></div>";
+  }
+
+  function fillCleanerFilter() {
+    document.getElementById("f-cleaner").innerHTML =
+      '<option value="">' + U.allCleaners + "</option>" +
+      Object.keys(COLORS).map(function (cid) {
+        return '<option value="' + cid + '">' + cName(cid) + "</option>";
+      }).join("") +
+      '<option value="pairs">' + U.pairJobs + "</option>" +
+      '<option value="none">' + U.unassignedOnly + "</option>";
+    document.getElementById("f-cleaner").value = filterCleaner;
+    document.getElementById("f-type").value = filterType;
+  }
+
+  function fillFormSelects() {
+    document.getElementById("a-pid").innerHTML = Object.keys(PROPS).map(function (pid) {
+      return '<option value="' + pid + '">' + esc(P(pid).addr) + " — " + P(pid).area +
+        " (" + kindOf(pid) + ", " + bedsOf(pid) + ")</option>";
+    }).join("");
+    var opts = Object.keys(COLORS).map(function (cid) {
+      return '<option value="' + cid + '">' + cName(cid) + " · " + L.cleaners[cid].langs + "</option>";
+    }).join("");
+    document.getElementById("a-c1").innerHTML = '<option value="">' + U.fNobody + "</option>" + opts;
+    document.getElementById("a-c2").innerHTML = '<option value="">' + U.fNoSecond + "</option>" + opts;
+    document.getElementById("a-mgr").innerHTML = Object.keys(L.mgrs).map(function (m) {
+      return '<option value="' + m + '">' + L.mgrs[m] + "</option>";
+    }).join("");
+  }
+
+  /* ---------- tiles ---------- */
+  function renderTiles() {
+    var gaps7 = CLEANINGS.filter(function (c) {
+      return c.crew.length === 0 && c.date >= TODAY && c.date <= "2026-08-19";
+    }).length;
+    var waiting = CLEANINGS.filter(function (c) { return c.status === "sent"; }).length;
+    var todayJobs = CLEANINGS.filter(function (c) { return c.date === TODAY; }).length;
+    var payout = CLEANINGS.reduce(function (a, c) { return a + (c.crew.length ? jobTotal(c) : 0); }, 0);
+    var nCl = Object.keys(COLORS).length;
+
+    document.getElementById("tiles").innerHTML = [
+      tile("accent", U.tileToday, todayJobs, L.n(todayJobs, "cleanings") + " " + U.tileTodayN),
+      tile(gaps7 ? "alarm" : "", U.tileGaps, gaps7, gaps7 ? U.tileGapsN : U.tileGapsOk),
+      tile(waiting ? "caution" : "", U.tileWait, waiting, U.tileWaitN),
+      tile("", U.tilePay, money(payout), U.tilePayN + " " + L.n(nCl, "cleaners"))
+    ].join("");
+  }
+  function tile(cls, k, v, n) {
+    return '<div class="tile ' + cls + '"><span class="k">' + k + '</span><span class="v">' + v +
+      '</span><span class="n">' + n + "</span></div>";
+  }
+
+  /* ---------- calendar ---------- */
+  var gridStart = new Date(Date.UTC(2026, 6, 26));
+
+  function chip(c) {
+    var st = L.status[c.status];
+    var villa = PROPS[c.pid].kind === "villa" ? '<span class="vil">' + U.villaShort + "</span>" : "";
+    var b2b = c.turnover ? '<span class="turn">' + U.b2b + "</span>" : "";
+    if (!c.crew.length) {
+      return '<button class="chip gap" data-id="' + c.id + '">' +
+        '<span class="r1"><span class="nm">' + esc(P(c.pid).short) + "</span>" + villa + b2b +
+        '<span class="amt">' + money(c.rate) + "</span></span>" +
+        '<span class="r2"><span class="who">' + U.needsCleaner + "</span>" +
+        '<span class="tm">' + fmtTime(c.start) + "</span></span></button>";
+    }
+    return '<button class="chip' + (c.status === "done" ? " done" : "") + '" data-id="' + c.id +
+      '" style="--chip-bg:' + crewBg(c.crew) + '">' +
+      '<span class="r1"><span class="nm">' + esc(P(c.pid).short) + "</span>" + villa + b2b +
+      (c.crew.length > 1 ? '<span class="pair">×2</span>' : "") +
+      '<span class="amt">' + money(jobTotal(c)) + "</span></span>" +
+      '<span class="r2"><span class="st">' + statusMark(c.status) + "</span>" +
+      '<span class="who">' + crewNames(c) + "</span>" +
+      '<span class="tm">' + fmtTime(c.start) + "–" + fmtTime(c.start + c.hrs) + "</span></span></button>";
+  }
+
+  function renderMonth() {
+    var out = L.dow.map(function (d) { return '<div class="dow">' + d + "</div>"; }).join("");
+    for (var i = 0; i < 42; i++) {
+      var d = addDays(gridStart, i), key = iso(d), wd = d.getUTCDay();
+      var isOut = key.slice(0, 7) !== "2026-08";
+      var jobs = CLEANINGS.filter(function (c) { return c.date === key && visible(c); });
+      var shown = jobs.slice(0, 3), rest = jobs.length - shown.length;
+      out += '<div class="day' + (isOut ? " out" : (wd === 5 || wd === 6 ? " we" : "")) +
+        (key === TODAY ? " today" : "") + '">' +
+        '<div class="day-n">' + d.getUTCDate() +
+        (d.getUTCDate() === 1 ? " " + L.months[d.getUTCMonth()] : "") +
+        (key === TODAY ? '<span class="pill">' + U.today + "</span>" : "") +
+        '<button class="add" data-new="' + key + '" aria-label="+">+</button></div>' +
+        shown.map(chip).join("") +
+        (rest > 0 ? '<span class="more">' + U.more + " " + rest + "</span>" : "") + "</div>";
+    }
+    document.getElementById("month").innerHTML = out;
+
+    var vis = CLEANINGS.filter(visible);
+    document.getElementById("cal-sub").textContent =
+      L.n(Object.keys(PROPS).length, "properties") + " · " +
+      L.n(vis.length, "cleanings") + " " + U.shown + " · " +
+      vis.filter(function (c) { return c.crew.length > 1; }).length + " " + U.twoCleaner + " · " +
+      vis.filter(function (c) { return c.crew.length === 0; }).length + " " + U.unassigned;
+  }
+
+  function renderAgenda() {
+    var out = "";
+    for (var i = 0; i < 31; i++) {
+      var d = new Date(Date.UTC(2026, 7, 1 + i)), key = iso(d);
+      var jobs = CLEANINGS.filter(function (c) { return c.date === key && visible(c); });
+      if (!jobs.length) continue;
+      out += '<div class="agenda-day' + (key === TODAY ? " today" : "") + '">' +
+        "<h3>" + L.dateShort(d) + (key === TODAY ? " · " + U.today : "") + "</h3>" +
+        '<div class="rows">' + jobs.map(chip).join("") + "</div></div>";
+    }
+    document.getElementById("agenda").innerHTML = out;
+  }
+
+  function renderLegend() {
+    document.getElementById("legend").innerHTML =
+      Object.keys(COLORS).map(function (id) {
+        return '<span><i style="background:' + COLORS[id] + '"></i>' + cName(id) + "</span>";
+      }).join("") +
+      '<span><i style="background:var(--danger-soft);border:1px dashed var(--danger)"></i>' +
+        U.noCrewLegend + "</span><span>" + U.legendPair + "</span><span>" + U.legendB2B + "</span>";
+  }
+
+  /* ---------- timeline ---------- */
+  function renderTimeline() {
+    var head = '<div class="tl-row tl-head"><div class="tl-name"><b>' + U.tlProperty +
+      "</b><span>" + U.august + " 2026</span></div><div class=\"tl-days\">";
+    for (var i = 1; i <= 31; i++) {
+      var d = new Date(Date.UTC(2026, 7, i)), wd = d.getUTCDay();
+      head += '<div class="tl-dh ' + (iso(d) === TODAY ? "td" : (wd === 5 || wd === 6 ? "we" : "")) + '">' + i + "</div>";
+    }
+    head += "</div></div>";
+
+    var rows = Object.keys(PROPS).filter(function (pid) {
+      return !filterType || PROPS[pid].kind === filterType;
+    }).map(function (pid) {
+      var p = PROPS[pid], grid = "";
+      for (var i = 1; i <= 31; i++) {
+        var d = new Date(Date.UTC(2026, 7, i)), wd = d.getUTCDay();
+        grid += '<i class="' + (iso(d) === TODAY ? "td" : (wd === 5 || wd === 6 ? "we" : "")) + '"></i>';
+      }
+      var bars = STAYS.filter(function (s) {
+        return s[0] === pid && s[2] >= "2026-08-01" && s[1] <= "2026-08-31";
+      }).map(function (s) {
+        var a = s[1] < "2026-08-01" ? 1 : parseInt(s[1].slice(8), 10);
+        var b = s[2] > "2026-08-31" ? 31 : parseInt(s[2].slice(8), 10);
+        return '<div class="tl-bar" style="grid-column:' + a + "/" + (b + 1) + '">' + s[3].slice(0, 3).toUpperCase() + "</div>";
+      }).join("");
+
+      var jobs = CLEANINGS.filter(function (c) { return c.pid === pid; });
+      var marks = jobs.filter(visible).map(function (c) {
+        var day = parseInt(c.date.slice(8), 10), gap = !c.crew.length;
+        var tip = P(pid).addr + " · " + dateLong(c.date) + " · " +
+          fmtTime(c.start) + "–" + fmtTime(c.start + c.hrs) + " · " +
+          (gap ? U.unassigned : crewNames(c) + " · " + money(jobTotal(c)));
+        return '<button class="tl-clean' + (gap ? " gap" : "") + '" data-id="' + c.id +
+          '" style="grid-column:' + day + "/" + (day + 1) + (gap ? "" : ";--chip-bg:" + crewBg(c.crew)) +
+          '" title="' + esc(tip) + '">' + crewMark(c.crew) + "</button>";
+      }).join("");
+
+      var sum = jobs.reduce(function (a, c) { return a + (c.crew.length ? jobTotal(c) : 0); }, 0);
+      var nights = STAYS.filter(function (s) { return s[0] === pid; }).reduce(function (a, s) {
+        var from = s[1] < "2026-08-01" ? "2026-08-01" : s[1];
+        var to = s[2] > "2026-08-31" ? "2026-09-01" : s[2];
+        return a + Math.max(0, (new Date(to) - new Date(from)) / 86400000);
+      }, 0);
+
+      return '<div class="tl-row"><div class="tl-name"><b>' + esc(P(pid).addr) + "</b>" +
+        "<span>" + P(pid).area + " · " + kindOf(pid) + " · " + bedsOf(pid) + "</span>" +
+        '<span class="stats">' + L.n(jobs.length, "cleanings") + " · " + p.hrs.toFixed(1) + " " +
+        U.msgHours + " · " + money(sum) + " · " + U.tlBooked + " " +
+        Math.round(nights / 31 * 100) + "%</span></div>" +
+        '<div class="tl-tracks">' +
+        '<div class="tl-track"><div class="tl-grid">' + grid + "</div>" + bars + "</div>" +
+        '<div class="tl-track"><div class="tl-grid">' + grid + "</div>" + marks + "</div>" +
+        "</div></div>";
+    }).join("");
+
+    document.getElementById("tl").innerHTML = head + rows;
+  }
+
+  /* ---------- properties ---------- */
+  function renderProps() {
+    var ids = Object.keys(PROPS);
+    var villas = ids.filter(function (p) { return PROPS[p].kind === "villa"; }).length;
+    document.getElementById("prop-sub").textContent =
+      U.totalProps + " " + ids.length + " · " + villas + " " + U.villas + " · " +
+      (ids.length - villas) + " " + U.apartments;
+
+    document.getElementById("tbl-props").innerHTML =
+      "<thead><tr><th>" + U.thProperty + "</th><th>" + U.thType + "</th><th>" + U.thSize + "</th><th>" +
+      U.thManager + "</th><th class='num'>" + U.thStdHours + "</th><th class='num'>" + U.thCrew +
+      "</th><th class='num'>" + U.thRate + "</th><th>" + U.thCalendars + "</th><th class='num'>" +
+      U.thAugJobs + "</th><th>" + U.thCoverage + "</th><th></th></tr></thead><tbody>" +
+      ids.map(function (pid) {
+        var p = PROPS[pid];
+        var jobs = CLEANINGS.filter(function (c) { return c.pid === pid; });
+        var open = jobs.filter(function (c) { return !c.crew.length; }).length;
+        return "<tr><td><b>" + esc(P(pid).addr) + '</b><span class="sub2">' + P(pid).area + "</span></td>" +
+          '<td><span class="tag ' + (p.kind === "villa" ? "villa" : "apt") + '">' + kindOf(pid) + "</span></td>" +
+          "<td>" + bedsOf(pid) + "</td><td>" + mgrName(p.mgr) + "</td>" +
+          "<td class='num'>" + p.hrs.toFixed(1) + "</td><td class='num'>" + p.crew + "</td>" +
+          "<td class='num'>" + money(p.rate) + "</td>" +
+          "<td>" + p.src.map(function (s) { return '<span class="tag neutral">' + s + "</span>"; }).join(" ") + "</td>" +
+          "<td class='num'>" + jobs.length + "</td>" +
+          "<td>" + (open ? '<span class="tag bad">' + open + " " + U.open + "</span>"
+                         : '<span class="tag ok">' + U.covered + "</span>") + "</td>" +
+          '<td><button class="btn btn-sm" data-new-prop="' + pid + '">' + U.thAssign + "</button></td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------- cleaners ---------- */
+  function renderCleaners() {
+    var ids = Object.keys(COLORS);
+    document.getElementById("clean-sub").textContent = L.n(ids.length, "active") + " " + U.activeSuffix;
+
+    document.getElementById("tbl-cleaners").innerHTML =
+      "<thead><tr><th>" + U.thCleaner + "</th><th>" + U.thWhatsApp + "</th><th>" + U.thLangs + "</th><th>" +
+      U.thSince + "</th><th class='num'>" + U.thCleanings + "</th><th class='num'>" + U.thSolo +
+      "</th><th class='num'>" + U.thPaired + "</th><th class='num'>" + U.thHours + "</th><th class='num'>" +
+      U.thPayout + "</th><th>" + U.thAreas + "</th><th>" + U.thStatus + "</th><th></th></tr></thead><tbody>" +
+      ids.map(function (cid) {
+        var jobs = CLEANINGS.filter(function (j) { return crewIds(j).indexOf(cid) !== -1; });
+        var solo = jobs.filter(function (j) { return j.crew.length === 1; }).length;
+        var hrs = jobs.reduce(function (a, j) { return a + j.hrs; }, 0);
+        var pay = jobs.reduce(function (a, j) {
+          var mine = j.crew.filter(function (m) { return m.id === cid; })[0];
+          return a + (mine ? mine.pay : 0);
+        }, 0);
+        var areas = {};
+        jobs.forEach(function (j) { areas[P(j.pid).area] = 1; });
+        return "<tr><td><span class='who-cell'><span class='dot' style='--chip-bg:" + COLORS[cid] + "'></span><b>" +
+          cName(cid) + "</b></span></td>" +
+          "<td><span class='tag neutral'>" + PHONES[cid] + "</span></td>" +
+          "<td>" + L.cleaners[cid].langs + "</td><td>" + L.cleaners[cid].since + "</td>" +
+          "<td class='num'>" + jobs.length + "</td><td class='num'>" + solo + "</td>" +
+          "<td class='num'>" + (jobs.length - solo) + "</td>" +
+          "<td class='num'>" + hrs.toFixed(1) + "</td><td class='num'>" + money(pay) + "</td>" +
+          "<td>" + (Object.keys(areas).join(", ") || "—") + "</td>" +
+          "<td><span class='tag ok'>" + U.thActive + "</span></td>" +
+          '<td><button class="btn btn-sm" data-new-cleaner="' + cid + '">' + U.thGiveJob + "</button></td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------- reports ---------- */
+  function renderReports() {
+    var sum = document.getElementById("rep-summary");
+    var total = { n: 0, h: 0, m: 0 };
+
+    if (repMode === "cleaner") {
+      var rows = Object.keys(COLORS).map(function (cid) {
+        var jobs = CLEANINGS.filter(function (c) { return crewIds(c).indexOf(cid) !== -1; });
+        var h = jobs.reduce(function (a, c) { return a + c.hrs; }, 0);
+        var m = jobs.reduce(function (a, c) {
+          var mine = c.crew.filter(function (x) { return x.id === cid; })[0];
+          return a + (mine ? mine.pay : 0);
+        }, 0);
+        var props = {};
+        jobs.forEach(function (c) { props[c.pid] = 1; });
+        var paired = jobs.filter(function (c) { return c.crew.length > 1; }).length;
+        var doneN = jobs.filter(function (c) { return c.status === "done"; }).length;
+        total.n += jobs.length; total.h += h; total.m += m;
+        return "<tr class='pick' data-pick='" + cid + "' aria-selected='" + (cid === repPick) + "'>" +
+          "<td><span class='who-cell'><span class='dot' style='--chip-bg:" + COLORS[cid] + "'></span><b>" +
+          cName(cid) + "</b></span></td>" +
+          "<td><span class='tag neutral'>" + PHONES[cid] + "</span></td>" +
+          "<td class='num'>" + jobs.length + "</td><td class='num'>" + paired + "</td>" +
+          "<td class='num'>" + Object.keys(props).length + "</td>" +
+          "<td class='num'>" + h.toFixed(1) + "</td><td class='num'>" + money(m) + "</td>" +
+          "<td class='num'>" + doneN + " / " + jobs.length + "</td></tr>";
+      }).join("");
+      sum.innerHTML = "<thead><tr><th>" + U.thCleaner + "</th><th>" + U.thWhatsApp + "</th><th class='num'>" +
+        U.thCleanings + "</th><th class='num'>" + U.thPaired + "</th><th class='num'>" + U.thProperties +
+        "</th><th class='num'>" + U.thHours + "</th><th class='num'>" + U.thPayout + "</th><th class='num'>" +
+        U.thCompleted + "</th></tr></thead><tbody>" + rows + "</tbody>" +
+        "<tfoot><tr><td>" + U.total + "</td><td></td><td class='num'>" + total.n + "</td><td class='num'></td>" +
+        "<td class='num'>" + Object.keys(PROPS).length + "</td><td class='num'>" + total.h.toFixed(1) +
+        "</td><td class='num'>" + money(total.m) + "</td><td class='num'></td></tr></tfoot>";
+    } else {
+      var prows = Object.keys(PROPS).map(function (pid) {
+        var p = PROPS[pid];
+        var jobs = CLEANINGS.filter(function (c) { return c.pid === pid; });
+        var labour = jobs.reduce(function (a, c) { return a + c.hrs * Math.max(c.crew.length, 1); }, 0);
+        var m = jobs.reduce(function (a, c) { return a + (c.crew.length ? jobTotal(c) : 0); }, 0);
+        var who = {};
+        jobs.forEach(function (c) { crewIds(c).forEach(function (id) { who[id] = 1; }); });
+        var gapN = jobs.filter(function (c) { return !c.crew.length; }).length;
+        total.n += jobs.length; total.h += labour; total.m += m;
+        var dots = Object.keys(who).map(function (cid) {
+          return "<span class='dot' style='--chip-bg:" + COLORS[cid] + "' title='" + cName(cid) + "'></span>";
+        }).join("");
+        return "<tr class='pick' data-pick='" + pid + "' aria-selected='" + (pid === repPick) + "'>" +
+          "<td><b>" + esc(P(pid).addr) + "</b><span class='sub2'>" + P(pid).area + "</span></td>" +
+          "<td><span class='tag " + (p.kind === "villa" ? "villa" : "apt") + "'>" + kindOf(pid) + "</span></td>" +
+          "<td>" + mgrName(p.mgr) + "</td>" +
+          "<td class='num'>" + jobs.length + "</td><td class='num'>" + labour.toFixed(1) + "</td>" +
+          "<td class='num'>" + money(m) + "</td>" +
+          "<td><span class='who-cell'>" + dots + "</span></td>" +
+          "<td>" + (gapN ? "<span class='tag bad'>" + gapN + " " + U.open + "</span>"
+                         : "<span class='tag ok'>" + U.covered + "</span>") + "</td></tr>";
+      }).join("");
+      sum.innerHTML = "<thead><tr><th>" + U.thProperty + "</th><th>" + U.thType + "</th><th>" + U.thManager +
+        "</th><th class='num'>" + U.thCleanings + "</th><th class='num'>" + U.thLabour +
+        "</th><th class='num'>" + U.thCost + "</th><th>" + U.thCleaners + "</th><th>" + U.thCoverage +
+        "</th></tr></thead><tbody>" + prows + "</tbody><tfoot><tr><td>" + U.total +
+        "</td><td></td><td></td><td class='num'>" + total.n + "</td><td class='num'>" + total.h.toFixed(1) +
+        "</td><td class='num'>" + money(total.m) + "</td><td></td><td></td></tr></tfoot>";
+    }
+    renderDetail();
+  }
+
+  function renderDetail() {
+    var jobs, title, isCleaner = repMode === "cleaner";
+    if (isCleaner) {
+      if (!COLORS[repPick]) repPick = "mk";
+      jobs = CLEANINGS.filter(function (c) { return crewIds(c).indexOf(repPick) !== -1; });
+      title = cName(repPick) + " — " + U.jobLog + " · " + U.period;
+    } else {
+      if (!PROPS[repPick]) repPick = "P1";
+      jobs = CLEANINGS.filter(function (c) { return c.pid === repPick; });
+      title = P(repPick).addr + " — " + U.jobLog + " · " + U.period;
+    }
+    jobs = jobs.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    document.getElementById("detail-title").textContent = title;
+
+    var h = 0, m = 0;
+    var body = jobs.map(function (c) {
+      var st = L.status[c.status];
+      var mine = c.crew.filter(function (x) { return x.id === repPick; })[0];
+      var amount = isCleaner ? (mine ? mine.pay : 0) : (c.crew.length ? jobTotal(c) : c.rate);
+      var hours = isCleaner ? c.hrs : c.hrs * Math.max(c.crew.length, 1);
+      h += hours; m += amount;
+      var second = isCleaner
+        ? esc(P(c.pid).addr) + "<span class='sub2'>" + P(c.pid).area + " · " + kindOf(c.pid) +
+          (c.crew.length > 1
+            ? " · " + U.withWho + " " + c.crew.filter(function (x) { return x.id !== repPick; })
+                .map(function (x) { return cName(x.id); }).join(", ")
+            : " · " + U.solo) +
+          (c.turnover ? " · " + U.b2b : "") + "</span>"
+        : (c.crew.length
+            ? "<span class='who-cell'>" + c.crew.map(function (x) {
+                return "<span class='dot' style='--chip-bg:" + COLORS[x.id] + "'></span>" + cName(x.id) +
+                  " <span class='sub2' style='display:inline'>" + money(x.pay) + "</span>";
+              }).join(" ") + "</span>"
+            : "<span class='tag bad'>" + U.unassigned + "</span>");
+      return "<tr><td>" + L.dateShort(dOf(c.date)) + "</td><td>" + second + "</td><td>" +
+        fmtTime(c.start) + "–" + fmtTime(c.start + c.hrs) + "</td>" +
+        "<td class='num'>" + hours.toFixed(1) + "</td><td class='num'>" + money(amount) +
+        "</td><td><span class='tag " + statusCls(c.status) + "'>" + st + "</span></td></tr>";
+    }).join("");
+
+    document.getElementById("rep-detail").innerHTML =
+      "<thead><tr><th>" + U.thDate + "</th><th>" + (isCleaner ? U.thProperty : U.thCrewCol) + "</th><th>" +
+      U.thWindow + "</th><th class='num'>" + (isCleaner ? U.thHours : U.thLabour) + "</th><th class='num'>" +
+      (isCleaner ? U.thTheirPay : U.thCost) + "</th><th>" + U.thStatus + "</th></tr></thead><tbody>" +
+      (body || "<tr><td colspan='6' style='color:var(--ink-3)'>" + U.noJobs + "</td></tr>") +
+      "</tbody><tfoot><tr><td>" + L.n(jobs.length, "cleanings") + "</td><td></td><td></td><td class='num'>" +
+      h.toFixed(1) + "</td><td class='num'>" + money(m) + "</td><td></td></tr></tfoot>";
+  }
+
+  function statusCls(s) {
+    return { done: "ok", running: "warn", confirmed: "ok", sent: "warn", assigned: "neutral", unassigned: "bad" }[s];
+  }
+  function statusMark(s) {
+    return { done: "✓", running: "▶", confirmed: "✓", sent: "!", assigned: "·", unassigned: "!" }[s];
+  }
+
+  /* ---------- job modal ---------- */
+  function waText(c, member) {
+    var mates = (c.crew || []).filter(function (m) { return !member || m.id !== member.id; });
+    return U.msgTitle + "\n\n" +
+      U.msgAddr + ": " + P(c.pid).addr + "\n" +
+      U.msgArea + ": " + P(c.pid).area + " (" + kindOf(c.pid) + ", " + bedsOf(c.pid) + ")\n" +
+      U.msgDate + ": " + dateLong(c.date) + "\n" +
+      U.msgTime + ": " + fmtTime(c.start) + "–" + fmtTime(c.start + c.hrs) +
+        " (" + Number(c.hrs).toFixed(1) + " " + U.msgHours + ")\n" +
+      U.msgPay + ": " + money(member ? member.pay : c.rate) + "\n" +
+      (member && mates.length ? U.msgWith + ": " + mates.map(function (m) { return cName(m.id); }).join(", ") + "\n" : "") +
+      (c.noteText ? U.msgNote + ": " + c.noteText + "\n" : "") +
+      "\n" + mgrName(c.mgr) + " " + U.msgMeet;
+  }
+
+  function openJob(id) {
+    var c = byId(id);
+    if (!c) return;
+    var note = noteOf(c);
+    var ctx = { pid: c.pid, date: c.date, start: c.start, hrs: c.hrs, rate: c.rate,
+                mgr: c.mgr, crew: c.crew, noteText: note };
+
+    document.getElementById("m-title").textContent = P(c.pid).addr;
+    document.getElementById("m-sub").innerHTML =
+      P(c.pid).area + " · " + kindOf(c.pid) + " · " + bedsOf(c.pid) + " · " + dateLong(c.date) +
+      (c.turnover ? ' · <span class="tag warn">' + U.b2bWarn + "</span>" : "");
+
+    var sent = c.status !== "assigned" && c.status !== "unassigned";
+    var replied = c.status === "confirmed" || c.status === "done" || c.status === "running";
+
+    var crewBlock = c.crew.length
+      ? '<div class="who-cell">' + c.crew.map(function (m) {
+          return "<span class='tag neutral'><span class='dot' style='--chip-bg:" + COLORS[m.id] +
+            "'></span>" + cName(m.id) + " · " + money(m.pay) + "</span>";
+        }).join(" ") + "</div>"
+      : "";
+
+    var bubbles = c.crew.length
+      ? c.crew.map(function (m) {
+          return '<div class="wa"><div class="wa-label">' + U.waTo + " " + cName(m.id) + " · " + PHONES[m.id] +
+            '</div><div class="wa-bubble">' + esc(waText(ctx, m)) + "</div>" +
+            '<div class="wa-cap">' + (replied ? U.waReplied : sent ? U.waWaiting : U.waOnSave) + "</div>" +
+            '<div class="wa-btns"><span' + (replied ? ' class="chosen"' : "") + ">" + U.waAccept + "</span>" +
+            "<span>" + U.waDecline + "</span></div>" +
+            '<div class="track">' +
+              step(U.trSent, sent ? "09:02" : null) +
+              step(U.trDelivered, sent ? "09:02" : null) +
+              step(U.trRead, replied || c.status === "sent" ? "09:11" : null) +
+              step(U.trAccepted, replied ? "09:13" : null) +
+              step(U.trFinished, c.status === "done" ? "14:05" : null) +
+            "</div></div>";
+        }).join("")
+      : '<div class="wa"><div class="wa-label">' + U.waNothing + "</div>" +
+        '<div class="wa-bubble">' + esc(waText(ctx, null)) + "</div>" +
+        '<div class="wa-cap">' + U.waWillGo + "</div></div>";
+
+    document.getElementById("m-actions").innerHTML =
+      '<button class="btn btn-primary" data-edit="' + c.id + '">' +
+        (c.crew.length ? U.mEdit : U.mAssignCrew) + "</button>" +
+      (c.crew.length ? '<button class="btn">' + U.mResend + "</button>" : "") +
+      '<button class="btn btn-ghost">' + U.mCancel + "</button>";
+
+    document.getElementById("m-body").innerHTML =
+      '<div class="kv">' +
+        kv(U.mCrew, c.crew.length ? L.n(c.crew.length, "people") : '<span class="tag bad">' + U.mNobody + "</span>") +
+        kv(U.mManager, mgrName(c.mgr)) +
+        kv(U.mWindow, fmtTime(c.start) + "–" + fmtTime(c.start + c.hrs)) +
+        kv(U.mDuration, Number(c.hrs).toFixed(1) + " " + U.msgHours + " " + U.mEach) +
+        kv(U.mJobPay, money(jobTotal(c))) +
+        kv(U.mStatus, '<span class="tag ' + statusCls(c.status) + '">' + L.status[c.status] + "</span>") +
+      "</div>" + crewBlock +
+      (note ? '<div class="note"><b>' + U.mNote + ":</b> " + esc(note) + "</div>" : "") +
+      "<div>" + bubbles + "</div>";
+
+    document.getElementById("backdrop").hidden = false;
+  }
+
+  function kv(k, v) { return '<div><span class="k">' + k + '</span><span class="v">' + v + "</span></div>"; }
+  function step(label, time) {
+    return '<div><span class="mark' + (time ? "" : " pending") + '">' + (time ? "✓" : "·") + "</span>" +
+      label + '<span class="tm">' + (time || "—") + "</span></div>";
+  }
+
+  /* ---------- assign form ---------- */
+  function openAssign(opts) {
+    var c = opts.id ? byId(opts.id) : null;
+    editingId = c ? c.id : null;
+    payTouched = false;
+
+    var pid = c ? c.pid : (opts.pid || "P1");
+    var p = PROPS[pid];
+
+    document.getElementById("a-title").textContent = c ? U.aTitleEdit : U.aTitleNew;
+    document.getElementById("a-sub").textContent = c ? U.aSubEdit : U.aSubNew;
+    document.getElementById("a-save").textContent = c ? U.aSaveEdit : U.aSave;
+
+    document.getElementById("a-pid").value = pid;
+    document.getElementById("a-date").value = c ? c.date : (opts.date || TODAY);
+    document.getElementById("a-start").value = fmtTime(c ? c.start : 11.5);
+    document.getElementById("a-hrs").value = c ? c.hrs : p.hrs;
+    document.getElementById("a-mgr").value = c ? c.mgr : p.mgr;
+    document.getElementById("a-rate").value = c ? jobTotal(c) : p.rate;
+    document.getElementById("a-note").value = c ? noteOf(c) : "";
+    document.getElementById("a-send").checked = true;
+    document.getElementById("a-delete").hidden = !c;
+
+    var crew = c ? c.crew : (opts.cleaner ? [{ id: opts.cleaner, pay: 0 }] : []);
+    document.getElementById("a-c1").value = crew[0] ? crew[0].id : "";
+    document.getElementById("a-c2").value = crew[1] ? crew[1].id : "";
+    if (c) {
+      document.getElementById("a-p1").value = crew[0] ? crew[0].pay : "";
+      document.getElementById("a-p2").value = crew[1] ? crew[1].pay : "";
+    } else {
+      redistribute();
+    }
+
+    syncForm();
+    document.getElementById("a-backdrop").hidden = false;
+  }
+
+  function selectedCrew() {
+    var out = [];
+    var c1 = document.getElementById("a-c1").value, c2 = document.getElementById("a-c2").value;
+    if (c1) out.push(c1);
+    if (c2) out.push(c2);
+    return out;
+  }
+
+  function redistribute() {
+    var total = parseFloat(document.getElementById("a-rate").value) || 0;
+    var ids = selectedCrew(), shares = evenSplit(total, ids.length);
+    document.getElementById("a-p1").value = ids.length > 0 ? shares[0] : "";
+    document.getElementById("a-p2").value = ids.length > 1 ? shares[1] : "";
+  }
+
+  function readForm() {
+    var pid = document.getElementById("a-pid").value;
+    var ids = selectedCrew();
+    var pays = [
+      parseFloat(document.getElementById("a-p1").value) || 0,
+      parseFloat(document.getElementById("a-p2").value) || 0
+    ];
+    return {
+      pid: pid,
+      date: document.getElementById("a-date").value,
+      start: toH(document.getElementById("a-start").value || "11:30"),
+      hrs: parseFloat(document.getElementById("a-hrs").value) || PROPS[pid].hrs,
+      crew: ids.map(function (id, i) { return { id: id, pay: pays[i] }; }),
+      mgr: document.getElementById("a-mgr").value,
+      rate: parseFloat(document.getElementById("a-rate").value) || 0,
+      note: document.getElementById("a-note").value.trim(),
+      send: document.getElementById("a-send").checked
+    };
+  }
+
+  function conflicts(f) {
+    var out = [], ids = f.crew.map(function (m) { return m.id; });
+    if (!f.date) return out;
+
+    if (ids.length === 2 && ids[0] === ids[1]) out.push({ lvl: "bad", txt: U.cSameTwice });
+
+    var end = f.start + f.hrs;
+    CLEANINGS.forEach(function (c) {
+      if (c.id === editingId || c.date !== f.date) return;
+      if (!(f.start < c.start + c.hrs && c.start < end)) return;
+      var win = " (" + fmtTime(c.start) + "–" + fmtTime(c.start + c.hrs) + ") ";
+      crewIds(c).forEach(function (id) {
+        if (ids.indexOf(id) !== -1) {
+          out.push({ lvl: "bad", txt: cName(id) + " " + U.cBooked + " " + P(c.pid).addr + win + U.cThatDay });
+        }
+      });
+      if (c.mgr === f.mgr) {
+        out.push({ lvl: "warn", txt: mgrName(f.mgr) + " " + U.cMgrBusy + " " + P(c.pid).addr + win + U.cSameTime });
+      }
+    });
+
+    if (checkins[f.pid + "|" + f.date] && end > 15) {
+      out.push({ lvl: "bad", txt: U.cB2B + " " + fmtTime(end) + "." });
+    }
+
+    var paid = f.crew.reduce(function (a, m) { return a + m.pay; }, 0);
+    if (f.crew.length && Math.abs(paid - f.rate) > 0.5) {
+      out.push({ lvl: "warn", txt: U.cShares + " " + money(paid) + ", " + U.cButPay + " " + money(f.rate) +
+        ". " + U.cWillUse + " " + money(paid) + "." });
+    }
+
+    var band = PROPS[f.pid].kind === "villa" ? [500, 1200] : [200, 500];
+    if (f.rate && (f.rate < band[0] || f.rate > band[1])) {
+      out.push({ lvl: "warn", txt: kindOf(f.pid) + " " + U.cBand + " " + money(band[0]) + " " + U.cAnd + " " +
+        money(band[1]) + " — " + money(f.rate) + " " + U.cOutside });
+    }
+    return out;
+  }
+
+  function syncForm() {
+    var f = readForm(), ids = f.crew.map(function (m) { return m.id; });
+
+    document.getElementById("a-dot1").style.setProperty("--chip-bg", ids[0] ? COLORS[ids[0]] : "var(--line-strong)");
+    document.getElementById("a-dot2").style.setProperty("--chip-bg", ids[1] ? COLORS[ids[1]] : "var(--line-strong)");
+
+    document.getElementById("a-crew-hint").textContent =
+      ids.length === 0 ? U.hintNone
+      : ids.length === 1 ? U.hintSolo + " · " + f.hrs.toFixed(1) + " " + U.msgHours
+      : U.hintPair + " · " + f.hrs.toFixed(1) + " " + U.hintEach + " · " + (f.hrs * 2).toFixed(1) + " " + U.hintLabour;
+
+    var paid = f.crew.reduce(function (a, m) { return a + m.pay; }, 0);
+    document.getElementById("a-split").textContent = ids.length
+      ? U.splitJobPay + " " + money(f.rate) + "  =  " + f.crew.map(function (m) {
+          return cName(m.id) + " " + money(m.pay);
+        }).join("  +  ") + (Math.abs(paid - f.rate) > 0.5 ? "   (" + U.splitShares + " " + money(paid) + ")" : "")
+      : U.splitNothing + " " + money(f.rate) + " " + U.splitNothing2;
+
+    document.getElementById("a-warn").innerHTML = conflicts(f).map(function (x) {
+      return '<div class="alert ' + x.lvl + '" style="margin-bottom:6px"><b>' +
+        (x.lvl === "bad" ? U.conflict : U.heads) + ":</b> " + esc(x.txt) + "</div>";
+    }).join("");
+
+    var preview = { pid: f.pid, date: f.date || TODAY, start: f.start, hrs: f.hrs,
+                    rate: f.rate, noteText: f.note, mgr: f.mgr, crew: f.crew };
+    document.getElementById("a-wa-list").innerHTML =
+      (f.crew.length ? f.crew : [null]).map(function (m) {
+        return '<div class="wa"><div class="wa-label">' +
+          (m ? U.waPreview + " " + cName(m.id) + " · " + PHONES[m.id] : U.waPreviewNone) +
+          '</div><div class="wa-bubble">' + esc(waText(preview, m)) + "</div>" +
+          '<div class="wa-cap">' + (m ? U.waCapForm : U.waCapNone) + "</div>" +
+          (m ? '<div class="wa-btns"><span>' + U.waAccept + "</span><span>" + U.waDecline + "</span></div>" : "") +
+          "</div>";
+      }).join("");
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = document.getElementById("toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "toast";
+      el.className = "toast";
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.hidden = true; }, 4500);
+  }
+
+  /* ---------- view switching ---------- */
+  function show(v) {
+    view = v;
+    VIEWS.forEach(function (x) { document.getElementById("view-" + x).hidden = x !== v; });
+    Array.prototype.forEach.call(document.querySelectorAll(".nav-item"), function (n) {
+      n.setAttribute("aria-current", String(n.dataset.view === v));
+    });
+    document.getElementById("page-title").textContent = U[v];
+    document.getElementById("tiles").hidden = (v === "reports" || v === "properties" || v === "cleaners");
+    document.getElementById("date-controls").hidden =
+      (v === "properties" || v === "cleaners" || v === "reports");
+  }
+
+  function renderAll() {
+    renderTiles(); renderMonth(); renderAgenda(); renderLegend();
+    renderTimeline(); renderProps(); renderCleaners(); renderReports();
+  }
+
+  function setLocale(code) {
+    if (!DICT[code] || code === LOC) return;
+    LOC = code; L = DICT[code]; U = L.ui;
+    renderShell();
+    renderAll();
+    show(view);
+  }
+
+  /* ---------- events (all delegated, so re-rendering the shell is safe) ---------- */
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+
+    var loc = t.closest("[data-loc]");
+    if (loc) { setLocale(loc.dataset.loc); return; }
+
+    var addBtn = t.closest("[data-new]");
+    if (addBtn) { openAssign({ date: addBtn.dataset.new }); return; }
+
+    var propBtn = t.closest("[data-new-prop]");
+    if (propBtn) { openAssign({ pid: propBtn.dataset.newProp, date: TODAY }); return; }
+
+    var clnBtn = t.closest("[data-new-cleaner]");
+    if (clnBtn) { openAssign({ cleaner: clnBtn.dataset.newCleaner, date: TODAY }); return; }
+
+    var editBtn = t.closest("[data-edit]");
+    if (editBtn) {
+      document.getElementById("backdrop").hidden = true;
+      openAssign({ id: editBtn.dataset.edit });
+      return;
+    }
+
+    if (t.id === "new-cleaning") { openAssign({ date: TODAY }); return; }
+
+    var nav = t.closest("[data-view]");
+    if (nav) { show(nav.dataset.view); return; }
+
+    var chipEl = t.closest("[data-id]");
+    if (chipEl) { openJob(chipEl.dataset.id); return; }
+
+    var row = t.closest("[data-pick]");
+    if (row) { repPick = row.dataset.pick; renderReports(); return; }
+
+    if (t.id === "rep-by-cleaner" || t.id === "rep-by-prop") {
+      repMode = t.id === "rep-by-cleaner" ? "cleaner" : "property";
+      repPick = repMode === "cleaner" ? "mk" : "P1";
+      document.getElementById("rep-by-cleaner").setAttribute("aria-pressed", String(repMode === "cleaner"));
+      document.getElementById("rep-by-prop").setAttribute("aria-pressed", String(repMode !== "cleaner"));
+      renderReports();
+      return;
+    }
+
+    if (t.id === "m-close" || t.id === "backdrop") { document.getElementById("backdrop").hidden = true; return; }
+    if (t.id === "a-close" || t.id === "a-cancel" || t.id === "a-backdrop") {
+      document.getElementById("a-backdrop").hidden = true;
+      editingId = null;
+      return;
+    }
+    if (t.id === "a-delete") {
+      if (!editingId) return;
+      CLEANINGS = CLEANINGS.filter(function (c) { return c.id !== editingId; });
+      editingId = null;
+      document.getElementById("a-backdrop").hidden = true;
+      renderAll();
+      toast(U.tDeleted);
+    }
+  });
+
+  document.addEventListener("input", function (e) {
+    if (!e.target || !e.target.id) return;
+    if (e.target.id.indexOf("a-") !== 0) return;
+    if (e.target.id === "a-p1" || e.target.id === "a-p2") payTouched = true;
+    if (e.target.id === "a-rate" && !payTouched) redistribute();
+    syncForm();
+  });
+
+  document.addEventListener("change", function (e) {
+    var id = e.target && e.target.id;
+    if (!id) return;
+    if (id === "f-cleaner") {
+      filterCleaner = e.target.value;
+      renderMonth(); renderAgenda(); renderTimeline();
+      return;
+    }
+    if (id === "f-type") {
+      filterType = e.target.value;
+      renderMonth(); renderAgenda(); renderTimeline();
+      return;
+    }
+    if (id.indexOf("a-") !== 0) return;
+    if (id === "a-pid") {
+      var p = PROPS[document.getElementById("a-pid").value];
+      document.getElementById("a-hrs").value = p.hrs;
+      document.getElementById("a-rate").value = p.rate;
+      document.getElementById("a-mgr").value = p.mgr;
+      payTouched = false;
+      redistribute();
+    }
+    if (id === "a-c1" || id === "a-c2") { payTouched = false; redistribute(); }
+    syncForm();
+  });
+
+  document.addEventListener("submit", function (e) {
+    if (!e.target || e.target.id !== "a-form") return;
+    e.preventDefault();
+    var f = readForm();
+    var newId = f.pid + "|" + f.date;
+
+    if (editingId && editingId !== newId) {
+      CLEANINGS = CLEANINGS.filter(function (c) { return c.id !== editingId; });
+    }
+    var c = byId(newId);
+    if (!c) { c = { id: newId, noteKey: newId }; CLEANINGS.push(c); }
+
+    c.pid = f.pid; c.date = f.date; c.start = f.start; c.hrs = f.hrs;
+    c.crew = f.crew; c.mgr = f.mgr; c.note = f.note;
+    c.rate = f.crew.length ? f.crew.reduce(function (a, m) { return a + m.pay; }, 0) : f.rate;
+    c.turnover = !!checkins[newId];
+    c.status = !f.crew.length ? "unassigned" : (f.send ? "sent" : "assigned");
+
+    editingId = null;
+    document.getElementById("a-backdrop").hidden = true;
+    renderAll();
+
+    toast(!f.crew.length ? U.tNoCrew
+      : U.tSaved + " " + (f.send
+          ? U.tSent + " " + f.crew.map(function (m) { return cName(m.id); }).join(" " + U.tAnd + " ")
+          : U.tNotSent));
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      document.getElementById("backdrop").hidden = true;
+      document.getElementById("a-backdrop").hidden = true;
+      editingId = null;
+    }
+  });
+
+  renderShell();
+  renderAll();
+  show("calendar");
+})();
+</script>
