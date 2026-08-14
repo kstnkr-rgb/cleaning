@@ -1,55 +1,30 @@
 <title>Eilat Turnaround — Cleaning Ops Console</title>
 <style>
+  /* Palette sampled straight off the Turno reference screenshots:
+     page #efeff4, accent #29c2af, ink #3d4465, muted #6b7b8b,
+     job chips #fc9835 / #6764eb / #f89cb1 / #1565c0 / #94e59d.
+
+     Deliberately light-only, like the product it is modelled on. `color-scheme: light`
+     keeps native controls (selects, date and time pickers, checkboxes) light as well,
+     even when the viewer's OS is set to dark. */
   :root {
-    --ground: #eaeff2; --surface: #ffffff; --surface-2: #f6f9fa; --surface-3: #eef3f5;
-    --ink: #1f313c; --ink-2: #556b79; --ink-3: #8598a5;
-    --line: #dde5ea; --line-strong: #c8d5dc;
-    --accent: #12b39c; --accent-deep: #0a8c79; --accent-soft: #e0f6f2;
-    --danger: #d84a4a; --danger-soft: #fbeaea;
-    --warn: #cf8a12; --warn-soft: #fbf1dd;
-    --ok: #2c9c68; --ok-soft: #e3f4ec;
-    --villa: #8a6bbf; --villa-soft: #f0eafa;
-    --booking: #e7edf0; --booking-ink: #6c8593;
-    --shadow: 0 1px 2px rgba(31,49,60,.06), 0 4px 14px rgba(31,49,60,.06);
-    --shadow-lg: 0 12px 40px rgba(31,49,60,.22);
-    --c-mk: #d8821a; --c-op: #6455d6; --c-yb: #cc4a83; --c-rt: #2680bf; --c-ns: #2f9367;
+    color-scheme: light;
+    --ground: #efeff4; --surface: #ffffff; --surface-2: #f7f7fa; --surface-3: #ececf1;
+    --ink: #3d4465; --ink-2: #6b7b8b; --ink-3: #9aa4b4;
+    --line: #e3e3ea; --line-strong: #cbcbd6;
+    --accent: #29c2af; --accent-deep: #1c9a8b; --accent-soft: #e2f7f4;
+    --danger: #e8443c; --danger-soft: #fdecea;
+    --warn: #d5820f; --warn-soft: #fdf2e2;
+    --ok: #2f9e5c; --ok-soft: #e7f6ec;
+    --villa: #6764eb; --villa-soft: #ecebfd;
+    --booking: #ececf1; --booking-ink: #6b7b8b;
+    --shadow: 0 1px 2px rgba(61,68,101,.06), 0 4px 14px rgba(61,68,101,.07);
+    --shadow-lg: 0 12px 40px rgba(61,68,101,.24);
+    --c-mk: #e08a1f; --c-op: #6764eb; --c-yb: #db5f86; --c-rt: #1565c0; --c-ns: #3d9e5f;
     --chip-ink: #ffffff;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Cascadia Mono",
             "Noto Sans Mono", "DejaVu Sans Mono", monospace;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground: #0d151a; --surface: #151f26; --surface-2: #1a262e; --surface-3: #202e37;
-      --ink: #e2ecf1; --ink-2: #9bb0bd; --ink-3: #6d8392;
-      --line: #24333d; --line-strong: #33454f;
-      --accent: #2ad0b6; --accent-deep: #5fe3cd; --accent-soft: #10312d;
-      --danger: #ef6a6a; --danger-soft: #331a1a;
-      --warn: #e0a33e; --warn-soft: #33270f;
-      --ok: #48c78a; --ok-soft: #12301f;
-      --villa: #a78ad4; --villa-soft: #241d33;
-      --booking: #202d35; --booking-ink: #8ba3b1;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.28);
-      --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
-      --c-mk: #dd9540; --c-op: #8377e4; --c-yb: #d96b9c; --c-rt: #4599d4; --c-ns: #45ab80;
-      --chip-ink: #0d151a;
-    }
-  }
-  :root[data-theme="dark"] {
-    --ground: #0d151a; --surface: #151f26; --surface-2: #1a262e; --surface-3: #202e37;
-    --ink: #e2ecf1; --ink-2: #9bb0bd; --ink-3: #6d8392;
-    --line: #24333d; --line-strong: #33454f;
-    --accent: #2ad0b6; --accent-deep: #5fe3cd; --accent-soft: #10312d;
-    --danger: #ef6a6a; --danger-soft: #331a1a;
-    --warn: #e0a33e; --warn-soft: #33270f;
-    --ok: #48c78a; --ok-soft: #12301f;
-    --villa: #a78ad4; --villa-soft: #241d33;
-    --booking: #202d35; --booking-ink: #8ba3b1;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.28);
-    --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
-    --c-mk: #dd9540; --c-op: #8377e4; --c-yb: #d96b9c; --c-rt: #4599d4; --c-ns: #45ab80;
-    --chip-ink: #0d151a;
   }
 
   * { box-sizing: border-box; }
@@ -655,6 +630,7 @@
       august: "August", allCleaners: "All cleaners", pairJobs: "Two-cleaner jobs",
       unassignedOnly: "Unassigned only", allProps: "All properties",
       villasOnly: "Villas only", aptsOnly: "Apartments only",
+      grpType: "By type", grpProps: "A single property",
       filterCleaner: "Filter by cleaner", filterType: "Filter by property type",
       tileToday: "Today · 13 Aug", tileTodayN: "scheduled",
       tileGaps: "Unassigned · next 7 days", tileGapsN: "check-outs with nobody booked",
@@ -834,6 +810,7 @@
       august: "Август", allCleaners: "Все уборщицы", pairJobs: "Уборки на двоих",
       unassignedOnly: "Только без исполнителя", allProps: "Все объекты",
       villasOnly: "Только виллы", aptsOnly: "Только квартиры",
+      grpType: "По типу", grpProps: "Отдельный объект",
       filterCleaner: "Фильтр по уборщице", filterType: "Фильтр по типу объекта",
       tileToday: "Сегодня · 13 авг", tileTodayN: "назначено",
       tileGaps: "Без исполнителя · 7 дней", tileGapsN: "выездов никому не отдано",
@@ -1010,6 +987,7 @@
       august: "אוגוסט", allCleaners: "כל המנקות", pairJobs: "עבודות בזוג",
       unassignedOnly: "ללא שיבוץ בלבד", allProps: "כל הנכסים",
       villasOnly: "וילות בלבד", aptsOnly: "דירות בלבד",
+      grpType: "לפי סוג", grpProps: "נכס מסוים",
       filterCleaner: "סינון לפי מנקה", filterType: "סינון לפי סוג נכס",
       tileToday: "היום · 13 באוג׳", tileTodayN: "משובצים",
       tileGaps: "ללא שיבוץ · 7 ימים", tileGapsN: "יציאות שאיש לא שובץ אליהן",
@@ -1130,7 +1108,7 @@
 
   /* ================= runtime ================= */
 
-  var LOC = "ru";
+  var LOC = "he";
   var L = DICT[LOC];
   var U = L.ui;
 
@@ -1210,8 +1188,15 @@
   var repMode = "cleaner", repPick = "mk";
   var editingId = null, payTouched = false;
 
+  // filterType is "" (everything), a kind ("villa" / "apt"), or a single property id ("P3").
+  function propPasses(pid) {
+    if (!filterType) return true;
+    if (filterType === "villa" || filterType === "apt") return PROPS[pid].kind === filterType;
+    return pid === filterType;
+  }
+
   function visible(c) {
-    if (filterType && PROPS[c.pid].kind !== filterType) return false;
+    if (!propPasses(c.pid)) return false;
     if (!filterCleaner) return true;
     if (filterCleaner === "none") return c.crew.length === 0;
     if (filterCleaner === "pairs") return c.crew.length > 1;
@@ -1259,8 +1244,14 @@
           '<select class="filter" id="f-cleaner" aria-label="' + U.filterCleaner + '"></select>' +
           '<select class="filter" id="f-type" aria-label="' + U.filterType + '">' +
             '<option value="">' + U.allProps + "</option>" +
-            '<option value="villa">' + U.villasOnly + "</option>" +
-            '<option value="apt">' + U.aptsOnly + "</option></select>" +
+            '<optgroup label="' + U.grpType + '">' +
+              '<option value="villa">' + U.villasOnly + "</option>" +
+              '<option value="apt">' + U.aptsOnly + "</option></optgroup>" +
+            '<optgroup label="' + U.grpProps + '">' +
+              Object.keys(PROPS).map(function (pid) {
+                return '<option value="' + pid + '">' + esc(P(pid).addr) + " · " + P(pid).area + "</option>";
+              }).join("") +
+            "</optgroup></select>" +
         "</div>" +
         '<div class="content">' +
           '<div class="tiles" id="tiles"></div>' +
@@ -1495,9 +1486,7 @@
     }
     head += "</div></div>";
 
-    var rows = Object.keys(PROPS).filter(function (pid) {
-      return !filterType || PROPS[pid].kind === filterType;
-    }).map(function (pid) {
+    var rows = Object.keys(PROPS).filter(propPasses).map(function (pid) {
       var p = PROPS[pid], grid = "";
       for (var i = 1; i <= 31; i++) {
         var d = new Date(Date.UTC(2026, 7, i)), wd = d.getUTCDay();
