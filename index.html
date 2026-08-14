@@ -400,20 +400,41 @@
     font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
     font-weight: 700; color: var(--ink-3);
   }
-  .crew-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 124px; gap: 9px; align-items: center; }
+  .crew-cols {
+    display: grid; grid-template-columns: 14px minmax(0, 1fr) 118px 26px; gap: 9px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+    font-weight: 700; color: var(--ink-3); margin-bottom: -2px;
+  }
+  .crew-cols span:nth-child(1) { grid-column: 2; }
+  .crew-cols span:nth-child(2) { grid-column: 3; text-align: end; }
+  .crew-rows { display: flex; flex-direction: column; gap: 10px; }
+  .crew-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 118px 26px; gap: 9px; align-items: center; }
   .crew-row .dot { width: 12px; height: 12px; flex: 0 0 12px; border: 1px solid var(--line-strong); }
   .crew-row input, .crew-row select {
     font: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 7px;
     border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); width: 100%;
   }
   .crew-row input { font-family: var(--mono); text-align: end; }
+  .row-x {
+    border: 1px solid transparent; background: none; color: var(--ink-3);
+    font: inherit; font-size: 17px; line-height: 1; border-radius: 6px;
+    width: 26px; height: 30px; cursor: pointer; padding: 0;
+  }
+  .row-x:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+  .crew-add {
+    align-self: flex-start; border: 1px dashed var(--line-strong); background: none;
+    color: var(--accent-deep); font: inherit; font-weight: 600; font-size: 12.5px;
+    padding: 6px 12px; border-radius: 7px; cursor: pointer;
+  }
+  .crew-add:hover { background: var(--accent-soft); border-color: var(--accent); }
   .crew-split {
     font-size: 12px; color: var(--ink-2); font-family: var(--mono); letter-spacing: -.02em;
     display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
   }
   @media (max-width: 560px) {
-    .crew-row { grid-template-columns: 14px minmax(0, 1fr); }
+    .crew-row { grid-template-columns: 14px minmax(0, 1fr) 26px; }
     .crew-row input { grid-column: 2; }
+    .crew-cols { display: none; }
   }
 
   .alert { border-radius: 8px; padding: 10px 12px; font-size: 12.5px; }
@@ -588,7 +609,7 @@
       var w = { cleanings: ["cleaning", "cleanings"], properties: ["property", "properties"],
                 villas: ["villa", "villas"], apartments: ["apartment", "apartments"],
                 cleaners: ["cleaner", "cleaners"], people: ["cleaner", "cleaners"],
-                active: ["active", "active"] }[k];
+                records: ["record", "records"], active: ["active", "active"] }[k];
       return n + " " + (n === 1 ? w[0] : w[1]);
     },
     beds: function (n) { return n === 0 ? "Studio" : n + " bed"; },
@@ -640,7 +661,7 @@
       schedTitle: "Cleaning schedule", assignBtn: "+ Assign cleaning",
       needsCleaner: "Needs a cleaner", more: "more",
       b2b: "B2B", villaShort: "VILLA", noCrewLegend: "No crew yet",
-      legendPair: "<b>×2</b> = two cleaners, pay split",
+      legendPair: "<b>×2</b> <b>×3</b> = team size, pay split between them",
       legendB2B: "<b>B2B</b> = back-to-back, guest checks in the same day",
       calNote: "Bookings arrive from the platform calendars on their own — nothing is typed in by hand. " +
         "The grid shows <b>cleanings</b>, one per check-out, colour-coded by cleaner. A card split into two " +
@@ -684,7 +705,7 @@
       shown: "shown", twoCleaner: "two-cleaner",
       mCrew: "Crew", mNobody: "nobody yet", mManager: "Manager on site", mWindow: "Window",
       mDuration: "Duration", mEach: "each", mJobPay: "Job pay", mStatus: "Status",
-      mNote: "Manager note", mEdit: "Edit / reassign", mAssignCrew: "Assign a crew",
+      mNote: "Manager note", mEdit: "Edit / reassign", mAssignCrew: "Assign",
       mResend: "Resend", mCancel: "Cancel cleaning", mClose: "Close",
       b2bWarn: "Back-to-back — guest checks in 15:00",
       waTo: "To", waNothing: "Nothing sent yet — no crew",
@@ -700,22 +721,37 @@
       aSubEdit: "Change the crew or the details, then save.",
       aSave: "Assign", aSaveEdit: "Save changes", aCancel: "Cancel", aDelete: "Delete",
       fProperty: "Property", fDate: "Date", fStart: "Start time", fHours: "Duration, hours",
-      fPay: "Job pay, ₪", fManager: "Manager on site", fCrew: "Crew",
-      fNobody: "— nobody yet —", fNoSecond: "— no second cleaner —",
+      fPay: "Job pay, ₪", fManager: "Manager on site", fCrew: "Team",
+      fNobody: "— nobody yet —", fNoSecond: "— empty —",
+      crewAdd: "+ Add a cleaner", crewRemove: "Remove from the team",
       fNote: "Note for the cleaners",
       fNotePh: "Anything unusual — late check-out, pool deck, a broken blind to photograph…",
       fSend: "Send the WhatsApp messages straight away",
       hintNone: "nobody assigned — the job stays in the gap list",
       hintSolo: "solo job", hintPair: "two cleaners", hintEach: "h each", hintLabour: "labour hours",
-      splitJobPay: "Job pay", splitNothing: "Expected job pay",
-      splitNothing2: "— nothing to split yet.", splitShares: "shares total",
+      fCrewWho: "Cleaner", fCrewPay: "Pay, ₪",
+      history: "Change history", changesNav: "Booking changes",
+      histSub: "Every edit, in the order it happened",
+      histNote: "Everything that touches the schedule is written down: what the platform calendars " +
+        "brought in, and what a manager did about it. The log is the answer to “who moved this and when”, " +
+        "and the reason a mistake can be traced instead of argued about.",
+      thWhen: "When", thWho: "Who", thWhat: "Event", thDetails: "Details",
+      sysActor: "System",
+      logNew: "Booking added", logCancel: "Booking cancelled", logMove: "Check-out moved",
+      logAssign: "Cleaning assigned", logEdit: "Cleaning edited", logDelete: "Cleaning deleted",
+      logGap: "Cleaning saved without a team",
+      logFrom: "from", logTo: "to", logNoCrewShort: "no team",
+      autosave: "Auto-saved", autosaveNever: "Auto-save on", autosaveOff: "Auto-save unavailable",
+      resetDemo: "Reset the demo", restored: "Schedule restored from the last auto-save.",
+      resetDone: "Demo reset to its starting data.",
       conflict: "Conflict", heads: "Heads up",
       cSameTwice: "The same cleaner is picked twice — choose a different second person.",
       cBooked: "is already booked at", cThatDay: "that day.",
       cMgrBusy: "is escorting a cleaning at", cSameTime: "at the same time.",
       cB2B: "Back-to-back day — the next guest checks in at 15:00, but this cleaning ends at",
-      cShares: "The shares add up to", cButPay: "but the job pay is", cWillUse: "Saving will use",
-      cBand: "rates normally sit between", cAnd: "and", cOutside: "is outside the usual band.",
+      cNoPay: "no pay set. Fill it in before saving.",
+      logFDate: "date", logFTime: "time", logFHours: "hours", logFPay: "job pay",
+      logFCrew: "team", logFMgr: "manager", logFNote: "note edited",
       waPreview: "WhatsApp preview →", waPreviewNone: "WhatsApp preview — no cleaner selected, nothing will be sent",
       waCapForm: "Goes out on save. These are her reply buttons, not yours.",
       waCapNone: "Nothing will be sent until somebody is assigned.",
@@ -763,7 +799,7 @@
       var w = { cleanings: ["уборка","уборки","уборок"], properties: ["объект","объекта","объектов"],
                 villas: ["вилла","виллы","вилл"], apartments: ["квартира","квартиры","квартир"],
                 cleaners: ["уборщицу","уборщиц","уборщиц"], people: ["человек","человека","человек"],
-                active: ["активна","активны","активных"] }[k];
+                records: ["запись","записи","записей"], active: ["активна","активны","активных"] }[k];
       var a = Math.abs(n) % 100, b = a % 10, f;
       if (a > 10 && a < 20) f = w[2];
       else if (b > 1 && b < 5) f = w[1];
@@ -820,7 +856,7 @@
       schedTitle: "График уборок", assignBtn: "+ Назначить уборку",
       needsCleaner: "Нужен исполнитель", more: "ещё",
       b2b: "ОБОРОТ", villaShort: "ВИЛЛА", noCrewLegend: "Исполнителя нет",
-      legendPair: "<b>×2</b> — двое, оплата делится",
+      legendPair: "<b>×2</b> <b>×3</b> — сколько человек в команде, оплата делится",
       legendB2B: "<b>ОБОРОТ</b> — гость заезжает в тот же день",
       calNote: "Брони приезжают из календарей площадок сами — руками ничего не вводится. В сетке показаны " +
         "<b>уборки</b>, по одной на каждый выезд, цвет — это исполнитель. Карточка, залитая двумя цветами, — " +
@@ -840,7 +876,7 @@
         "что сдвинулось, и передаёт решение менеджеру — чтобы отменённая бронь не оставила уборщицу стоять " +
         "у занятой квартиры.",
       propImport: "Импорт календаря", propAdd: "+ Добавить объект",
-      propNote: "Ставка, норма времени и стандартный размер бригады задаются на объекте и подставляются в " +
+      propNote: "Ставка, норма времени и стандартный размер команды задаются на объекте и подставляются в " +
         "каждую новую уборку — менеджер правит их только когда что-то нестандартное. <b>Календари</b> — это " +
         "список импортируемых лент: объект без ленты сам по себе выездов не даст.",
       clAdd: "+ Добавить уборщицу",
@@ -850,21 +886,21 @@
       period: "1 – 31 августа 2026", byCleaner: "По уборщицам", byProperty: "По объектам", exportCsv: "Выгрузить CSV",
       jobLog: "Журнал работ", pickRow: "Кликните строку выше, чтобы переключить",
       thProperty: "Объект", thType: "Тип", thSize: "Размер", thManager: "Менеджер",
-      thStdHours: "Норма, ч", thCrew: "Бригада", thRate: "Ставка", thCalendars: "Календари",
+      thStdHours: "Норма, ч", thCrew: "Команда", thRate: "Ставка", thCalendars: "Календари",
       thAugJobs: "Уборок", thCoverage: "Покрытие", thAssign: "Назначить",
       thCleaner: "Уборщица", thWhatsApp: "WhatsApp", thLangs: "Языки", thSince: "В команде с",
       thSolo: "Одна", thPaired: "В паре", thHours: "Часы", thPayout: "К выплате", thAreas: "Районы",
       thStatus: "Статус", thGiveJob: "Дать работу", thActive: "Активна",
       thCleanings: "Уборок", thProperties: "Объектов", thCompleted: "Выполнено",
       thLabour: "Человеко-часы", thCost: "Стоимость", thCleaners: "Уборщицы",
-      thDate: "Дата", thWindow: "Окно", thTheirPay: "Её оплата", thCrewCol: "Бригада",
+      thDate: "Дата", thWindow: "Окно", thTheirPay: "Её оплата", thCrewCol: "Команда",
       total: "Итого", covered: "закрыто", open: "открыто", noJobs: "За период уборок нет.",
       solo: "одна", withWho: "вместе с", unassigned: "без исполнителя",
       totalProps: "всего", villas: "вилл", apartments: "квартир", activeSuffix: "· август 2026",
       shown: "показано", twoCleaner: "на двоих",
-      mCrew: "Бригада", mNobody: "пока никого", mManager: "Сопровождает", mWindow: "Окно",
+      mCrew: "Команда", mNobody: "пока никого", mManager: "Сопровождает", mWindow: "Окно",
       mDuration: "Длительность", mEach: "на каждого", mJobPay: "Оплата за уборку", mStatus: "Статус",
-      mNote: "Комментарий менеджера", mEdit: "Изменить", mAssignCrew: "Назначить бригаду",
+      mNote: "Комментарий менеджера", mEdit: "Изменить", mAssignCrew: "Назначить",
       mResend: "Отправить снова", mCancel: "Отменить уборку", mClose: "Закрыть",
       b2bWarn: "Оборот — гость заезжает в 15:00",
       waTo: "Кому:", waNothing: "Ничего не отправлено — исполнителя нет",
@@ -880,23 +916,37 @@
       aSubEdit: "Поменяйте исполнителей или детали и сохраните.",
       aSave: "Назначить", aSaveEdit: "Сохранить", aCancel: "Отмена", aDelete: "Удалить",
       fProperty: "Объект", fDate: "Дата", fStart: "Начало", fHours: "Длительность, ч",
-      fPay: "Оплата за уборку, ₪", fManager: "Сопровождает", fCrew: "Бригада",
-      fNobody: "— пока никого —", fNoSecond: "— без второй —",
+      fPay: "Оплата за уборку, ₪", fManager: "Сопровождает", fCrew: "Команда",
+      fNobody: "— пока никого —", fNoSecond: "— пусто —",
+      crewAdd: "+ Добавить уборщицу", crewRemove: "Убрать из команды",
       fNote: "Комментарий для исполнителей",
       fNotePh: "Что-то необычное — поздний выезд, бассейн, сломанные жалюзи, которые надо сфотографировать…",
       fSend: "Отправить сообщения в WhatsApp сразу",
       hintNone: "исполнителя нет — уборка останется в списке дыр",
       hintSolo: "одна", hintPair: "двое", hintEach: "ч на каждую", hintLabour: "человеко-часов",
-      splitJobPay: "Оплата", splitNothing: "Ожидаемая оплата",
-      splitNothing2: "— делить пока не на кого.", splitShares: "доли дают",
+      fCrewWho: "Уборщица", fCrewPay: "Оплата, ₪",
+      history: "История изменений", changesNav: "Изменения броней",
+      histSub: "Каждая правка в том порядке, в котором она была",
+      histNote: "Всё, что трогает расписание, записывается: что принесли календари площадок и что с этим " +
+        "сделал менеджер. Журнал отвечает на вопрос «кто это перенёс и когда» — и превращает спор об ошибке " +
+        "в её разбор.",
+      thWhen: "Когда", thWho: "Кто", thWhat: "Событие", thDetails: "Детали",
+      sysActor: "Система",
+      logNew: "Добавлена бронь", logCancel: "Бронь отменена", logMove: "Выезд перенесён",
+      logAssign: "Назначена уборка", logEdit: "Уборка изменена", logDelete: "Уборка удалена",
+      logGap: "Уборка сохранена без команды",
+      logFrom: "с", logTo: "на", logNoCrewShort: "без команды",
+      autosave: "Сохранено", autosaveNever: "Автосохранение включено", autosaveOff: "Автосохранение недоступно",
+      resetDemo: "Сбросить демо", restored: "Расписание восстановлено из последнего автосохранения.",
+      resetDone: "Демо сброшено к исходным данным.",
       conflict: "Конфликт", heads: "Внимание",
       cSameTwice: "Один и тот же человек выбран дважды — выберите другую вторую уборщицу.",
       cBooked: "в это время уже занята на объекте", cThatDay: "",
       cMgrBusy: "в это же время сопровождает уборку на объекте", cSameTime: "",
       cB2B: "День оборота — следующий гость заезжает в 15:00, а уборка заканчивается в",
-      cShares: "Доли складываются в", cButPay: "а оплата за уборку —",
-      cWillUse: "При сохранении будет записано",
-      cBand: "обычно стоят от", cAnd: "до", cOutside: "выходит за привычные рамки.",
+      cNoPay: "не указана оплата. Впишите её перед сохранением.",
+      logFDate: "дата", logFTime: "время", logFHours: "часы", logFPay: "оплата",
+      logFCrew: "команда", logFMgr: "менеджер", logFNote: "комментарий изменён",
       waPreview: "Превью WhatsApp →", waPreviewNone: "Превью WhatsApp — исполнитель не выбран, отправлять некому",
       waCapForm: "Уйдёт при сохранении. Кнопки ниже — её, не ваши.",
       waCapNone: "Пока никто не назначен, ничего не отправится.",
@@ -945,7 +995,7 @@
       var w = { cleanings: ["ניקיון","ניקיונות"], properties: ["נכס","נכסים"],
                 villas: ["וילה","וילות"], apartments: ["דירה","דירות"],
                 cleaners: ["מנקה","מנקות"], people: ["מנקה","מנקות"],
-                active: ["פעילה","פעילות"] }[k];
+                records: ["רשומה","רשומות"], active: ["פעילה","פעילות"] }[k];
       return n + " " + (n === 1 ? w[0] : w[1]);
     },
     beds: function (n) { return n === 0 ? "סטודיו" : n + " חדרים"; },
@@ -997,7 +1047,7 @@
       schedTitle: "לוח הניקיונות", assignBtn: "+ שיבוץ ניקיון",
       needsCleaner: "דרושה מנקה", more: "עוד",
       b2b: "רצף", villaShort: "וילה", noCrewLegend: "עדיין ללא שיבוץ",
-      legendPair: "<b>×2</b> — שתי מנקות, התשלום מתחלק",
+      legendPair: "<b>×2</b> <b>×3</b> — גודל הצוות, התשלום מתחלק ביניהן",
       legendB2B: "<b>רצף</b> — אורח נכנס באותו יום",
       calNote: "ההזמנות מגיעות מיומני הפלטפורמות לבד — שום דבר לא מוקלד ידנית. בלוח מוצגים <b>ניקיונות</b>, " +
         "אחד לכל יציאה, והצבע הוא המנקה. כרטיס בשני צבעים הוא <b>עבודה בזוג</b>. עמדי עם העכבר על יום ולחצי " +
@@ -1039,7 +1089,7 @@
       shown: "מוצגים", twoCleaner: "בזוג",
       mCrew: "צוות", mNobody: "עדיין אף אחת", mManager: "מלווה בשטח", mWindow: "חלון זמן",
       mDuration: "משך", mEach: "לכל אחת", mJobPay: "תשלום לניקיון", mStatus: "סטטוס",
-      mNote: "הערת מנהל", mEdit: "עריכה", mAssignCrew: "שיבוץ צוות",
+      mNote: "הערת מנהל", mEdit: "עריכה", mAssignCrew: "שבץ",
       mResend: "שליחה חוזרת", mCancel: "ביטול הניקיון", mClose: "סגירה",
       b2bWarn: "רצף — האורח הבא נכנס ב-15:00",
       waTo: "אל:", waNothing: "עדיין לא נשלח דבר — אין שיבוץ",
@@ -1056,22 +1106,35 @@
       aSave: "שבץ", aSaveEdit: "שמור שינויים", aCancel: "ביטול", aDelete: "מחק",
       fProperty: "נכס", fDate: "תאריך", fStart: "שעת התחלה", fHours: "משך בשעות",
       fPay: "תשלום לניקיון, ₪", fManager: "מלווה בשטח", fCrew: "צוות",
-      fNobody: "— עדיין אף אחת —", fNoSecond: "— בלי מנקה שנייה —",
+      fNobody: "— עדיין אף אחת —", fNoSecond: "— ריק —",
+      crewAdd: "+ הוספת מנקה", crewRemove: "הסרה מהצוות",
       fNote: "הערה למנקות",
       fNotePh: "כל דבר חריג — יציאה מאוחרת, דק הבריכה, תריס שבור שצריך לצלם…",
       fSend: "לשלוח את ההודעות בוואטסאפ מיד",
       hintNone: "אין שיבוץ — העבודה תישאר ברשימת החורים",
       hintSolo: "לבד", hintPair: "שתי מנקות", hintEach: "שעות לכל אחת", hintLabour: "שעות עבודה",
-      splitJobPay: "תשלום", splitNothing: "תשלום צפוי",
-      splitNothing2: "— אין עדיין בין מי לחלק.", splitShares: "החלקים מסתכמים ב-",
+      fCrewWho: "מנקה", fCrewPay: "תשלום, ₪",
+      history: "היסטוריית שינויים", changesNav: "שינויי הזמנות",
+      histSub: "כל שינוי, לפי סדר האירועים",
+      histNote: "כל דבר שנוגע בלוח נרשם: מה הביאו יומני הפלטפורמות ומה המנהל עשה עם זה. היומן עונה על " +
+        "השאלה «מי הזיז את זה ומתי» — והופך ויכוח על טעות לבירור שלה.",
+      thWhen: "מתי", thWho: "מי", thWhat: "אירוע", thDetails: "פרטים",
+      sysActor: "מערכת",
+      logNew: "נוספה הזמנה", logCancel: "ההזמנה בוטלה", logMove: "היציאה הועברה",
+      logAssign: "שובץ ניקיון", logEdit: "הניקיון עודכן", logDelete: "הניקיון נמחק",
+      logGap: "הניקיון נשמר בלי צוות",
+      logFrom: "מ-", logTo: "ל-", logNoCrewShort: "בלי צוות",
+      autosave: "נשמר", autosaveNever: "שמירה אוטומטית פעילה", autosaveOff: "שמירה אוטומטית לא זמינה",
+      resetDemo: "איפוס הדמו", restored: "הלוח שוחזר מהשמירה האוטומטית האחרונה.",
+      resetDone: "הדמו אופס לנתוני הפתיחה.",
       conflict: "התנגשות", heads: "לתשומת לב",
       cSameTwice: "אותה מנקה נבחרה פעמיים — בחרי אדם אחר למקום השני.",
       cBooked: "כבר משובצת באותה שעה בנכס", cThatDay: "",
       cMgrBusy: "מלווה באותה שעה ניקיון בנכס", cSameTime: "",
       cB2B: "יום רצף — האורח הבא נכנס ב-15:00, אבל הניקיון מסתיים ב-",
-      cShares: "החלקים מסתכמים ב-", cButPay: "אבל התשלום לניקיון הוא",
-      cWillUse: "בשמירה יירשם",
-      cBand: "בדרך כלל נעות בין", cAnd: "ל-", cOutside: "חורג מהטווח הרגיל.",
+      cNoPay: "לא נקבע תשלום. מלאי אותו לפני השמירה.",
+      logFDate: "תאריך", logFTime: "שעה", logFHours: "שעות", logFPay: "תשלום",
+      logFCrew: "צוות", logFMgr: "מנהל", logFNote: "ההערה עודכנה",
       waPreview: "תצוגה מקדימה →", waPreviewNone: "תצוגה מקדימה — לא נבחרה מנקה, אין למי לשלוח",
       waCapForm: "תישלח עם השמירה. הכפתורים למטה שלה, לא שלך.",
       waCapNone: "כל עוד אף אחת לא שובצה, שום דבר לא יישלח.",
@@ -1134,19 +1197,24 @@
 
   function crewIds(c) { return (c.crew || []).map(function (m) { return m.id; }); }
   function crewNames(c) { return (c.crew || []).map(function (m) { return cName(m.id); }).join(" + "); }
+  // One cleaner paints the card flat; a team splits it into equal hard-edged bands.
   function crewBg(crew) {
     if (!crew || !crew.length) return "var(--danger)";
     if (crew.length === 1) return COLORS[crew[0].id];
-    return "linear-gradient(100deg, " + COLORS[crew[0].id] + " 0 50%, " + COLORS[crew[1].id] + " 50% 100%)";
+    var n = crew.length;
+    var stops = crew.map(function (m, i) {
+      return COLORS[m.id] + " " + (i / n * 100).toFixed(2) + "% " + ((i + 1) / n * 100).toFixed(2) + "%";
+    });
+    return "linear-gradient(100deg, " + stops.join(", ") + ")";
   }
   function crewMark(crew) {
     if (!crew.length) return "!";
     return crew.map(function (m) { return cName(m.id).charAt(0); }).join("");
   }
-  function jobTotal(c) {
-    if (c.crew && c.crew.length) return c.crew.reduce(function (a, m) { return a + m.pay; }, 0);
-    return c.rate;
-  }
+  // One source of truth for money: a cleaning costs whatever was handed to the people on it.
+  // `rate` is only the property's expected price, used while nobody is assigned yet.
+  function crewPay(c) { return (c.crew || []).reduce(function (a, m) { return a + m.pay; }, 0); }
+  function jobTotal(c) { return (c.crew && c.crew.length) ? crewPay(c) : c.rate; }
   function evenSplit(total, n) {
     if (n < 1) return [];
     var each = Math.round(total / n / 10) * 10, out = [];
@@ -1158,23 +1226,28 @@
   var checkins = {};
   STAYS.forEach(function (s) { checkins[s[0] + "|" + s[1]] = true; });
 
-  var CLEANINGS = [];
-  STAYS.forEach(function (s) {
-    var pid = s[0], out = s[2];
-    if (out.slice(0, 7) !== "2026-08") return;
-    var key = pid + "|" + out;
-    var ids = Object.prototype.hasOwnProperty.call(ASSIGN, key) ? ASSIGN[key] : [];
-    var p = PROPS[pid];
-    var status = STATUS_OVERRIDE[key];
-    if (out >= UNSTAFFED_FROM) { ids = []; status = null; }
-    var shares = evenSplit(p.rate, ids.length);
-    if (!status) status = ids.length === 0 ? "unassigned" : (out < TODAY ? "done" : "assigned");
-    CLEANINGS.push({
-      id: key, pid: pid, date: out, status: status, noteKey: key,
-      crew: ids.map(function (id, i) { return { id: id, pay: shares[i] }; }),
-      turnover: !!checkins[key], hrs: p.hrs, rate: p.rate, mgr: p.mgr, start: 11.5, note: null
+  function buildCleanings() {
+    var out = [];
+    STAYS.forEach(function (s) {
+      var pid = s[0], day = s[2];
+      if (day.slice(0, 7) !== "2026-08") return;
+      var key = pid + "|" + day;
+      var ids = Object.prototype.hasOwnProperty.call(ASSIGN, key) ? ASSIGN[key] : [];
+      var p = PROPS[pid];
+      var status = STATUS_OVERRIDE[key];
+      if (day >= UNSTAFFED_FROM) { ids = []; status = null; }
+      var shares = evenSplit(p.rate, ids.length);
+      if (!status) status = ids.length === 0 ? "unassigned" : (day < TODAY ? "done" : "assigned");
+      out.push({
+        id: key, pid: pid, date: day, status: status, noteKey: key,
+        crew: ids.map(function (id, i) { return { id: id, pay: shares[i] }; }),
+        turnover: !!checkins[key], hrs: p.hrs, rate: p.rate, mgr: p.mgr, start: 11.5, note: null
+      });
     });
-  });
+    return out;
+  }
+
+  var CLEANINGS = buildCleanings();
 
   function noteOf(c) { return c.note !== null ? c.note : (L.notes[c.noteKey] || ""); }
 
@@ -1183,10 +1256,170 @@
     return null;
   }
 
+  /* ---------- change history ----------
+     Entries are stored structurally, never as finished sentences, so the log re-renders
+     in whichever language is on screen. */
+  var LOG = [];
+
+  function seedLog() {
+    return [
+      { d: "2026-08-13", t: "09:42", by: null, k: "new",    p: "P8", a: "2026-08-27", b: "2026-09-03", s: "Airbnb" },
+      { d: "2026-08-13", t: "09:42", by: null, k: "cancel", p: "P1", a: "2026-08-12", b: "2026-08-15", s: "Airbnb" },
+      { d: "2026-08-13", t: "08:12", by: null, k: "move",   p: "P3", a: "2026-08-19", b: "2026-08-21" },
+      { d: "2026-08-13", t: "07:55", by: "m1", k: "assign", p: "P6", date: "2026-08-13",
+        crew: [{ id: "ns", pay: 650 }] },
+      { d: "2026-08-12", t: "18:30", by: "m1", k: "edit",   p: "P5", date: "2026-08-14",
+        changes: [{ f: "time", a: 11.5, b: 12.5 }, { f: "note" }] },
+      { d: "2026-08-12", t: "18:04", by: "m1", k: "assign", p: "P5", date: "2026-08-14",
+        crew: [{ id: "op", pay: 280 }] },
+      { d: "2026-08-12", t: "17:51", by: "m3", k: "edit",   p: "P1", date: "2026-08-15",
+        changes: [{ f: "crew", a: [{ id: "rt", pay: 380 }], b: [{ id: "mk", pay: 380 }] }] },
+      { d: "2026-08-12", t: "11:20", by: null, k: "new",    p: "P6", a: "2026-08-25", b: "2026-09-01", s: "Airbnb" },
+      { d: "2026-08-11", t: "16:07", by: "m2", k: "delete", p: "P2", date: "2026-08-11" },
+      { d: "2026-08-11", t: "09:15", by: "m2", k: "assign", p: "P4", date: "2026-08-10",
+        crew: [{ id: "yb", pay: 600 }, { id: "ns", pay: 600 }] }
+    ];
+  }
+
+  function stamp() {
+    var n = new Date();
+    return { d: TODAY, t: (n.getHours() < 10 ? "0" : "") + n.getHours() + ":" +
+                         (n.getMinutes() < 10 ? "0" : "") + n.getMinutes() };
+  }
+
+  function logAdd(kind, data) {
+    var s = stamp();
+    LOG.unshift(Object.assign({ d: s.d, t: s.t, by: "m1", k: kind }, data));
+  }
+
+  var LOG_KIND = {
+    new: "logNew", cancel: "logCancel", move: "logMove",
+    assign: "logAssign", edit: "logEdit", delete: "logDelete", gap: "logGap"
+  };
+  var LOG_TONE = {
+    new: "neutral", cancel: "bad", move: "warn",
+    assign: "ok", edit: "warn", delete: "bad", gap: "bad"
+  };
+
+  function crewLabel(list) {
+    if (!list || !list.length) return U.logNoCrewShort;
+    return list.map(function (m) { return cName(m.id) + " " + money(m.pay); }).join(", ");
+  }
+
+  function crewKey(list) {
+    return (list || []).map(function (m) { return m.id + ":" + m.pay; }).join(",");
+  }
+
+  // What actually moved, field by field, so the log reads as a diff and not as "edited".
+  function diffJob(before, after) {
+    var out = [];
+    if (before.date !== after.date) out.push({ f: "date", a: before.date, b: after.date });
+    if (before.start !== after.start) out.push({ f: "time", a: before.start, b: after.start });
+    if (before.hrs !== after.hrs) out.push({ f: "hrs", a: before.hrs, b: after.hrs });
+    if (before.mgr !== after.mgr) out.push({ f: "mgr", a: before.mgr, b: after.mgr });
+    if ((before.note || "") !== (after.note || "")) out.push({ f: "note" });
+    if (crewKey(before.crew) !== crewKey(after.crew)) {
+      out.push({ f: "crew", a: before.crew, b: after.crew });
+    }
+    return out;
+  }
+
+  function changeText(ch) {
+    switch (ch.f) {
+      case "date": return U.logFDate + " " + L.dateShort(dOf(ch.a)) + " → " + L.dateShort(dOf(ch.b));
+      case "time": return U.logFTime + " " + fmtTime(ch.a) + " → " + fmtTime(ch.b);
+      case "hrs":  return U.logFHours + " " + Number(ch.a).toFixed(1) + " → " + Number(ch.b).toFixed(1);
+      case "rate": return U.logFPay + " " + money(ch.a) + " → " + money(ch.b);
+      case "mgr":  return U.logFMgr + " " + mgrName(ch.a) + " → " + mgrName(ch.b);
+      case "crew": return U.logFCrew + " " + crewLabel(ch.a) + " → " + crewLabel(ch.b);
+      case "note": return U.logFNote;
+      default: return "";
+    }
+  }
+
+  function logDetails(e) {
+    if (e.k === "new" || e.k === "cancel") {
+      return L.dateShort(dOf(e.a)) + " – " + L.dateShort(dOf(e.b)) + " · " + e.s;
+    }
+    if (e.k === "move") {
+      return U.logFrom + " " + L.dateShort(dOf(e.a)) + " " + U.logTo + " " + L.dateShort(dOf(e.b));
+    }
+    var when = e.date ? L.dateShort(dOf(e.date)) : "";
+    if (e.k === "edit") {
+      var ch = (e.changes || []).map(changeText).filter(Boolean).join(" · ");
+      return when + (ch ? " · " + ch : "");
+    }
+    if (e.k === "assign" || e.k === "gap") return when + " · " + crewLabel(e.crew);
+    return when;
+  }
+
+  function renderHistory() {
+    document.getElementById("hist-sub").textContent = L.n(LOG.length, "records") + " · " + U.histSub;
+    document.getElementById("tbl-hist").innerHTML =
+      "<thead><tr><th>" + U.thWhen + "</th><th>" + U.thWho + "</th><th>" + U.thWhat +
+      "</th><th>" + U.thProperty + "</th><th>" + U.thDetails + "</th></tr></thead><tbody>" +
+      LOG.map(function (e) {
+        return "<tr><td><span class='tm'>" + L.dateShort(dOf(e.d)) + " · " + e.t + "</span></td>" +
+          "<td>" + (e.by ? mgrName(e.by) : "<span class='tag neutral'>" + U.sysActor + "</span>") + "</td>" +
+          "<td><span class='tag " + LOG_TONE[e.k] + "'>" + U[LOG_KIND[e.k]] + "</span></td>" +
+          "<td>" + esc(P(e.p).addr) + "<span class='sub2'>" + P(e.p).area + "</span></td>" +
+          "<td>" + esc(logDetails(e)) + "</td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------- auto-save ----------
+     Every change is written straight to local storage, so a reload after a crash
+     picks the schedule back up where it was. */
+  var STORE_KEY = "turnaround.demo.v1";
+  var storageOk = true, savedAt = null;
+
+  function persist() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ cleanings: CLEANINGS, log: LOG }));
+      savedAt = stamp().t;
+    } catch (err) {
+      storageOk = false;
+    }
+    renderSaveState();
+  }
+
+  function restore() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.cleanings) || !data.cleanings.length) return false;
+      CLEANINGS = data.cleanings;
+      if (Array.isArray(data.log) && data.log.length) LOG = data.log;
+      return true;
+    } catch (err) {
+      storageOk = false;
+      return false;
+    }
+  }
+
+  function resetDemo() {
+    try { localStorage.removeItem(STORE_KEY); } catch (err) { storageOk = false; }
+    CLEANINGS = buildCleanings();
+    LOG = seedLog();
+    savedAt = null;
+    renderAll();
+    toast(U.resetDone);
+  }
+
+  function renderSaveState() {
+    var label = !storageOk ? U.autosaveOff : (savedAt ? U.autosave + " · " + savedAt : U.autosaveNever);
+    ["save-state", "save-state-2"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = '<span class="tag ' + (storageOk ? "ok" : "warn") + '">⟲ ' + label + "</span>";
+    });
+  }
+
   var view = "calendar";
   var filterCleaner = "", filterType = "";
   var repMode = "cleaner", repPick = "mk";
-  var editingId = null, payTouched = false;
+  var editingId = null;
+  var formCrew = [];   // rows currently shown in the assign form: [{ id, pay }, ...]
 
   // filterType is "" (everything), a kind ("villa" / "apt"), or a single property id ("P3").
   function propPasses(pid) {
@@ -1204,7 +1437,7 @@
   }
 
   /* ---------- shell ---------- */
-  var VIEWS = ["calendar", "timeline", "changes", "properties", "cleaners", "reports"];
+  var VIEWS = ["calendar", "timeline", "changes", "history", "properties", "cleaners", "reports"];
 
   function renderShell() {
     document.documentElement.setAttribute("dir", L.dir);
@@ -1212,7 +1445,8 @@
 
     var nav = [
       ["calendar", "▦", U.calendar, ""], ["timeline", "▤", U.timeline, ""],
-      ["changes", "⟳", U.changes, '<span class="badge">4</span>']
+      ["changes", "⟳", U.changesNav, '<span class="badge">4</span>'],
+      ["history", "≡", U.history, ""]
     ].map(navBtn).join("");
     var nav2 = [
       ["properties", "⌂", U.properties, ""], ["cleaners", "☺", U.cleaners, ""],
@@ -1229,6 +1463,7 @@
       '<div class="main">' +
         '<header class="topbar"><h1 id="page-title"></h1>' +
           '<div class="who">' +
+            '<span id="save-state"></span>' +
             '<div class="locale">' + ["ru", "en", "he"].map(function (k) {
               return '<button type="button" data-loc="' + k + '" aria-pressed="' + (k === LOC) + '">' +
                 DICT[k].tag + "</button>";
@@ -1286,6 +1521,12 @@
                 }).join("") + "</div></div>";
             }).join("") + "</div></div>" +
             '<div class="note">' + U.chNote + "</div></section>" +
+          '<section id="view-history" hidden><div class="card">' +
+            '<div class="card-head"><h2>' + U.history + '</h2><span class="sub" id="hist-sub"></span>' +
+            '<div class="right"><span id="save-state-2"></span>' +
+            '<button class="btn btn-sm" id="reset-demo">' + U.resetDemo + "</button></div></div>" +
+            '<div class="tbl-wrap"><table id="tbl-hist"></table></div></div>' +
+            '<div class="note">' + U.histNote + "</div></section>" +
           '<section id="view-properties" hidden><div class="card">' +
             '<div class="card-head"><h2>' + U.properties + '</h2><span class="sub" id="prop-sub"></span>' +
             '<div class="right"><button class="btn btn-sm">' + U.propImport + "</button>" +
@@ -1338,15 +1579,11 @@
         '<label class="fld"><span>' + U.fDate + '</span><input type="date" id="a-date" min="2026-08-01" max="2026-09-30" required></label>' +
         '<label class="fld"><span>' + U.fStart + '</span><input type="time" id="a-start" step="900" required></label>' +
         '<label class="fld"><span>' + U.fHours + '</span><input type="number" id="a-hrs" step="0.5" min="0.5" max="12" required></label>' +
-        '<label class="fld"><span>' + U.fPay + '</span><input type="number" id="a-rate" step="10" min="0" required></label>' +
         '<label class="fld"><span>' + U.fManager + '</span><select id="a-mgr"></select></label></div>' +
       '<div class="crew" style="margin-top:14px"><div class="crew-head"><span>' + U.fCrew + "</span>" +
         '<span id="a-crew-hint" style="font-weight:600;letter-spacing:0;text-transform:none"></span></div>' +
-        '<div class="crew-row"><span class="dot" id="a-dot1" style="--chip-bg:var(--line-strong)"></span>' +
-        '<select id="a-c1"></select><input type="number" id="a-p1" step="10" min="0"></div>' +
-        '<div class="crew-row"><span class="dot" id="a-dot2" style="--chip-bg:var(--line-strong)"></span>' +
-        '<select id="a-c2"></select><input type="number" id="a-p2" step="10" min="0"></div>' +
-        '<div class="crew-split" id="a-split"></div></div>' +
+        '<div class="crew-cols"><span>' + U.fCrewWho + "</span><span>" + U.fCrewPay + "</span></div>" +
+        '<div class="crew-rows" id="a-crew-rows"></div></div>' +
       '<label class="fld" style="margin-top:14px"><span>' + U.fNote + "</span>" +
         '<textarea id="a-note" placeholder="' + esc(U.fNotePh) + '"></textarea></label>' +
       '<div id="a-warn" style="margin-top:14px"></div>' +
@@ -1372,11 +1609,6 @@
       return '<option value="' + pid + '">' + esc(P(pid).addr) + " — " + P(pid).area +
         " (" + kindOf(pid) + ", " + bedsOf(pid) + ")</option>";
     }).join("");
-    var opts = Object.keys(COLORS).map(function (cid) {
-      return '<option value="' + cid + '">' + cName(cid) + " · " + L.cleaners[cid].langs + "</option>";
-    }).join("");
-    document.getElementById("a-c1").innerHTML = '<option value="">' + U.fNobody + "</option>" + opts;
-    document.getElementById("a-c2").innerHTML = '<option value="">' + U.fNoSecond + "</option>" + opts;
     document.getElementById("a-mgr").innerHTML = Object.keys(L.mgrs).map(function (m) {
       return '<option value="' + m + '">' + L.mgrs[m] + "</option>";
     }).join("");
@@ -1389,7 +1621,7 @@
     }).length;
     var waiting = CLEANINGS.filter(function (c) { return c.status === "sent"; }).length;
     var todayJobs = CLEANINGS.filter(function (c) { return c.date === TODAY; }).length;
-    var payout = CLEANINGS.reduce(function (a, c) { return a + (c.crew.length ? jobTotal(c) : 0); }, 0);
+    var payout = CLEANINGS.reduce(function (a, c) { return a + crewPay(c); }, 0);
     var nCl = Object.keys(COLORS).length;
 
     document.getElementById("tiles").innerHTML = [
@@ -1421,7 +1653,7 @@
     return '<button class="chip' + (c.status === "done" ? " done" : "") + '" data-id="' + c.id +
       '" style="--chip-bg:' + crewBg(c.crew) + '">' +
       '<span class="r1"><span class="nm">' + esc(P(c.pid).short) + "</span>" + villa + b2b +
-      (c.crew.length > 1 ? '<span class="pair">×2</span>' : "") +
+      (c.crew.length > 1 ? '<span class="pair">×' + c.crew.length + "</span>" : "") +
       '<span class="amt">' + money(jobTotal(c)) + "</span></span>" +
       '<span class="r2"><span class="st">' + statusMark(c.status) + "</span>" +
       '<span class="who">' + crewNames(c) + "</span>" +
@@ -1805,7 +2037,6 @@
   function openAssign(opts) {
     var c = opts.id ? byId(opts.id) : null;
     editingId = c ? c.id : null;
-    payTouched = false;
 
     var pid = c ? c.pid : (opts.pid || "P1");
     var p = PROPS[pid];
@@ -1819,47 +2050,71 @@
     document.getElementById("a-start").value = fmtTime(c ? c.start : 11.5);
     document.getElementById("a-hrs").value = c ? c.hrs : p.hrs;
     document.getElementById("a-mgr").value = c ? c.mgr : p.mgr;
-    document.getElementById("a-rate").value = c ? jobTotal(c) : p.rate;
     document.getElementById("a-note").value = c ? noteOf(c) : "";
     document.getElementById("a-send").checked = true;
     document.getElementById("a-delete").hidden = !c;
 
-    var crew = c ? c.crew : (opts.cleaner ? [{ id: opts.cleaner, pay: 0 }] : []);
-    document.getElementById("a-c1").value = crew[0] ? crew[0].id : "";
-    document.getElementById("a-c2").value = crew[1] ? crew[1].id : "";
-    if (c) {
-      document.getElementById("a-p1").value = crew[0] ? crew[0].pay : "";
-      document.getElementById("a-p2").value = crew[1] ? crew[1].pay : "";
-    } else {
-      redistribute();
-    }
+    formCrew = (c ? c.crew.slice() : (opts.cleaner ? [{ id: opts.cleaner, pay: 0 }] : []))
+      .map(function (m) { return { id: m.id, pay: m.pay }; });
+    if (!formCrew.length) formCrew = [{ id: "", pay: 0 }];   // always one empty slot to start from
+    renderCrewRows();
 
     syncForm();
     document.getElementById("a-backdrop").hidden = false;
   }
 
-  function selectedCrew() {
-    var out = [];
-    var c1 = document.getElementById("a-c1").value, c2 = document.getElementById("a-c2").value;
-    if (c1) out.push(c1);
-    if (c2) out.push(c2);
-    return out;
+  /* The crew block is a variable number of rows; MAX_CREW caps how many people
+     one cleaning can be split between. */
+  var MAX_CREW = 3;
+
+  function renderCrewRows() {
+    var rows = formCrew.map(function (m, i) {
+      var opts = '<option value="">' + (i === 0 ? U.fNobody : U.fNoSecond) + "</option>" +
+        Object.keys(COLORS).map(function (cid) {
+          return '<option value="' + cid + '">' + cName(cid) + " · " + L.cleaners[cid].langs + "</option>";
+        }).join("");
+      return '<div class="crew-row">' +
+        '<span class="dot" id="a-dot' + i + '" style="--chip-bg:' +
+          (m.id ? COLORS[m.id] : "var(--line-strong)") + '"></span>' +
+        '<select id="a-c' + i + '" aria-label="' + U.fCrew + " " + (i + 1) + '">' + opts + "</select>" +
+        '<input type="number" id="a-p' + i + '" step="10" min="0" aria-label="' + U.fPay + '">' +
+        (formCrew.length > 1
+          ? '<button type="button" class="row-x" data-crew-del="' + i + '" aria-label="' +
+            U.crewRemove + '">×</button>'
+          : "<span></span>") +
+        "</div>";
+    }).join("");
+
+    document.getElementById("a-crew-rows").innerHTML = rows +
+      (formCrew.length < MAX_CREW
+        ? '<button type="button" class="crew-add" data-crew-add="1">' + U.crewAdd + "</button>"
+        : "");
+
+    // Pay is never filled in for you — the manager types what each person gets.
+    formCrew.forEach(function (m, i) {
+      document.getElementById("a-c" + i).value = m.id;
+      document.getElementById("a-p" + i).value = m.id && m.pay ? m.pay : "";
+    });
   }
 
-  function redistribute() {
-    var total = parseFloat(document.getElementById("a-rate").value) || 0;
-    var ids = selectedCrew(), shares = evenSplit(total, ids.length);
-    document.getElementById("a-p1").value = ids.length > 0 ? shares[0] : "";
-    document.getElementById("a-p2").value = ids.length > 1 ? shares[1] : "";
+  function syncCrewFromDom() {
+    formCrew = formCrew.map(function (m, i) {
+      var s = document.getElementById("a-c" + i), p = document.getElementById("a-p" + i);
+      return { id: s ? s.value : m.id, pay: p ? (parseFloat(p.value) || 0) : m.pay };
+    });
+  }
+
+  function selectedCrew() {
+    syncCrewFromDom();
+    return formCrew.filter(function (m) { return m.id; }).map(function (m) { return m.id; });
   }
 
   function readForm() {
     var pid = document.getElementById("a-pid").value;
-    var ids = selectedCrew();
-    var pays = [
-      parseFloat(document.getElementById("a-p1").value) || 0,
-      parseFloat(document.getElementById("a-p2").value) || 0
-    ];
+    syncCrewFromDom();
+    var filled = formCrew.filter(function (m) { return m.id; });
+    var ids = filled.map(function (m) { return m.id; });
+    var pays = filled.map(function (m) { return m.pay; });
     return {
       pid: pid,
       date: document.getElementById("a-date").value,
@@ -1867,7 +2122,7 @@
       hrs: parseFloat(document.getElementById("a-hrs").value) || PROPS[pid].hrs,
       crew: ids.map(function (id, i) { return { id: id, pay: pays[i] }; }),
       mgr: document.getElementById("a-mgr").value,
-      rate: parseFloat(document.getElementById("a-rate").value) || 0,
+      rate: PROPS[pid].rate,          // only the fallback price for a job with nobody on it
       note: document.getElementById("a-note").value.trim(),
       send: document.getElementById("a-send").checked
     };
@@ -1898,37 +2153,27 @@
       out.push({ lvl: "bad", txt: U.cB2B + " " + fmtTime(end) + "." });
     }
 
-    var paid = f.crew.reduce(function (a, m) { return a + m.pay; }, 0);
-    if (f.crew.length && Math.abs(paid - f.rate) > 0.5) {
-      out.push({ lvl: "warn", txt: U.cShares + " " + money(paid) + ", " + U.cButPay + " " + money(f.rate) +
-        ". " + U.cWillUse + " " + money(paid) + "." });
-    }
+    // Nobody gets put on a job without a number next to their name.
+    f.crew.forEach(function (m) {
+      if (!m.pay) out.push({ lvl: "bad", blocking: true, txt: cName(m.id) + " — " + U.cNoPay });
+    });
 
-    var band = PROPS[f.pid].kind === "villa" ? [500, 1200] : [200, 500];
-    if (f.rate && (f.rate < band[0] || f.rate > band[1])) {
-      out.push({ lvl: "warn", txt: kindOf(f.pid) + " " + U.cBand + " " + money(band[0]) + " " + U.cAnd + " " +
-        money(band[1]) + " — " + money(f.rate) + " " + U.cOutside });
-    }
     return out;
   }
 
   function syncForm() {
     var f = readForm(), ids = f.crew.map(function (m) { return m.id; });
 
-    document.getElementById("a-dot1").style.setProperty("--chip-bg", ids[0] ? COLORS[ids[0]] : "var(--line-strong)");
-    document.getElementById("a-dot2").style.setProperty("--chip-bg", ids[1] ? COLORS[ids[1]] : "var(--line-strong)");
+    formCrew.forEach(function (m, i) {
+      var dot = document.getElementById("a-dot" + i);
+      if (dot) dot.style.setProperty("--chip-bg", m.id ? COLORS[m.id] : "var(--line-strong)");
+    });
 
     document.getElementById("a-crew-hint").textContent =
       ids.length === 0 ? U.hintNone
       : ids.length === 1 ? U.hintSolo + " · " + f.hrs.toFixed(1) + " " + U.msgHours
-      : U.hintPair + " · " + f.hrs.toFixed(1) + " " + U.hintEach + " · " + (f.hrs * 2).toFixed(1) + " " + U.hintLabour;
-
-    var paid = f.crew.reduce(function (a, m) { return a + m.pay; }, 0);
-    document.getElementById("a-split").textContent = ids.length
-      ? U.splitJobPay + " " + money(f.rate) + "  =  " + f.crew.map(function (m) {
-          return cName(m.id) + " " + money(m.pay);
-        }).join("  +  ") + (Math.abs(paid - f.rate) > 0.5 ? "   (" + U.splitShares + " " + money(paid) + ")" : "")
-      : U.splitNothing + " " + money(f.rate) + " " + U.splitNothing2;
+      : L.n(ids.length, "people") + " · " + f.hrs.toFixed(1) + " " + U.hintEach +
+        " · " + (f.hrs * ids.length).toFixed(1) + " " + U.hintLabour;
 
     document.getElementById("a-warn").innerHTML = conflicts(f).map(function (x) {
       return '<div class="alert ' + x.lvl + '" style="margin-bottom:6px"><b>' +
@@ -1970,15 +2215,16 @@
     Array.prototype.forEach.call(document.querySelectorAll(".nav-item"), function (n) {
       n.setAttribute("aria-current", String(n.dataset.view === v));
     });
-    document.getElementById("page-title").textContent = U[v];
-    document.getElementById("tiles").hidden = (v === "reports" || v === "properties" || v === "cleaners");
-    document.getElementById("date-controls").hidden =
-      (v === "properties" || v === "cleaners" || v === "reports");
+    document.getElementById("page-title").textContent = v === "changes" ? U.changesNav : U[v];
+    var chromeless = (v === "reports" || v === "properties" || v === "cleaners" || v === "history");
+    document.getElementById("tiles").hidden = chromeless;
+    document.getElementById("date-controls").hidden = chromeless;
   }
 
   function renderAll() {
     renderTiles(); renderMonth(); renderAgenda(); renderLegend();
     renderTimeline(); renderProps(); renderCleaners(); renderReports();
+    renderHistory(); renderSaveState();
   }
 
   function setLocale(code) {
@@ -1996,6 +2242,24 @@
 
     var loc = t.closest("[data-loc]");
     if (loc) { setLocale(loc.dataset.loc); return; }
+
+    if (t.closest("[data-crew-add]")) {
+      syncCrewFromDom();
+      if (formCrew.length < MAX_CREW) formCrew.push({ id: "", pay: 0 });
+      renderCrewRows();
+      syncForm();
+      return;
+    }
+
+    var del = t.closest("[data-crew-del]");
+    if (del) {
+      syncCrewFromDom();
+      formCrew.splice(parseInt(del.dataset.crewDel, 10), 1);
+      if (!formCrew.length) formCrew = [{ id: "", pay: 0 }];
+      renderCrewRows();
+      syncForm();
+      return;
+    }
 
     var addBtn = t.closest("[data-new]");
     if (addBtn) { openAssign({ date: addBtn.dataset.new }); return; }
@@ -2039,11 +2303,16 @@
       editingId = null;
       return;
     }
+    if (t.id === "reset-demo") { resetDemo(); return; }
+
     if (t.id === "a-delete") {
       if (!editingId) return;
+      var gone = byId(editingId);
+      if (gone) logAdd("delete", { p: gone.pid, date: gone.date });
       CLEANINGS = CLEANINGS.filter(function (c) { return c.id !== editingId; });
       editingId = null;
       document.getElementById("a-backdrop").hidden = true;
+      persist();
       renderAll();
       toast(U.tDeleted);
     }
@@ -2052,8 +2321,6 @@
   document.addEventListener("input", function (e) {
     if (!e.target || !e.target.id) return;
     if (e.target.id.indexOf("a-") !== 0) return;
-    if (e.target.id === "a-p1" || e.target.id === "a-p2") payTouched = true;
-    if (e.target.id === "a-rate" && !payTouched) redistribute();
     syncForm();
   });
 
@@ -2074,12 +2341,8 @@
     if (id === "a-pid") {
       var p = PROPS[document.getElementById("a-pid").value];
       document.getElementById("a-hrs").value = p.hrs;
-      document.getElementById("a-rate").value = p.rate;
       document.getElementById("a-mgr").value = p.mgr;
-      payTouched = false;
-      redistribute();
     }
-    if (id === "a-c1" || id === "a-c2") { payTouched = false; redistribute(); }
     syncForm();
   });
 
@@ -2087,7 +2350,16 @@
     if (!e.target || e.target.id !== "a-form") return;
     e.preventDefault();
     var f = readForm();
+
+    // A blocking problem keeps the form open with the reason on screen.
+    if (conflicts(f).some(function (x) { return x.blocking; })) { syncForm(); return; }
+
     var newId = f.pid + "|" + f.date;
+    var orig = editingId ? byId(editingId) : null;
+    var before = orig ? {
+      date: orig.date, start: orig.start, hrs: orig.hrs, rate: orig.rate, mgr: orig.mgr,
+      note: noteOf(orig), crew: (orig.crew || []).map(function (m) { return { id: m.id, pay: m.pay }; })
+    } : null;
 
     if (editingId && editingId !== newId) {
       CLEANINGS = CLEANINGS.filter(function (c) { return c.id !== editingId; });
@@ -2096,13 +2368,20 @@
     if (!c) { c = { id: newId, noteKey: newId }; CLEANINGS.push(c); }
 
     c.pid = f.pid; c.date = f.date; c.start = f.start; c.hrs = f.hrs;
-    c.crew = f.crew; c.mgr = f.mgr; c.note = f.note;
-    c.rate = f.crew.length ? f.crew.reduce(function (a, m) { return a + m.pay; }, 0) : f.rate;
+    c.crew = f.crew; c.mgr = f.mgr; c.note = f.note; c.rate = f.rate;
     c.turnover = !!checkins[newId];
     c.status = !f.crew.length ? "unassigned" : (f.send ? "sent" : "assigned");
 
+    var crewSnap = c.crew.map(function (m) { return { id: m.id, pay: m.pay }; });
+    if (before) {
+      logAdd("edit", { p: c.pid, date: c.date, changes: diffJob(before, c) });
+    } else {
+      logAdd(f.crew.length ? "assign" : "gap", { p: c.pid, date: c.date, crew: crewSnap });
+    }
+
     editingId = null;
     document.getElementById("a-backdrop").hidden = true;
+    persist();
     renderAll();
 
     toast(!f.crew.length ? U.tNoCrew
@@ -2119,8 +2398,12 @@
     }
   });
 
+  LOG = seedLog();
+  var recovered = restore();
+
   renderShell();
   renderAll();
   show("calendar");
+  if (recovered) toast(U.restored);
 })();
 </script>
